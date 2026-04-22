@@ -1,0 +1,273 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button } from 'react-native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { CheckSquare, Square, ArrowLeft, Star } from 'lucide-react-native';
+
+import { skills } from '../data/mockData';
+import { useStore } from '../store';
+import { SkillsStackParamList } from '../navigation/types';
+
+type DetailRouteProp = RouteProp<SkillsStackParamList, 'SkillDetail'>;
+
+export default function SkillDetailScreen() {
+  const route = useRoute<DetailRouteProp>();
+  const navigation = useNavigation();
+  const { skillId } = route.params;
+  
+  const skill = skills.find(s => s.id === skillId);
+  const { skillCompletion, toggleSkillCompletion, notes, addNote } = useStore();
+  const isCompleted = !!skillCompletion[skillId];
+  
+  const [newNote, setNewNote] = useState('');
+
+  if (!skill) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text>Skill not found</Text>
+        <Button title="Go Back" onPress={() => navigation.goBack()} />
+      </View>
+    );
+  }
+
+  const skillNotes = notes.filter(n => n.skillId === skillId);
+
+  const handleAddNote = () => {
+    if (newNote.trim()) {
+      addNote({ skillId, content: newNote.trim() });
+      setNewNote('');
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <ArrowLeft color="#2C3E50" size={24} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>技能详情</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <ScrollView style={styles.content}>
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View>
+              <Text style={styles.skillName}>{skill.name}</Text>
+              <Text style={styles.skillCategory}>{skill.category}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.checkbox}
+              onPress={() => toggleSkillCompletion(skillId)}
+            >
+              {isCompleted ? (
+                <CheckSquare color="#27AE60" size={28} />
+              ) : (
+                <Square color="#95A5A6" size={28} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.description}>{skill.description}</Text>
+
+          <View style={styles.difficultyContainer}>
+            <Text style={styles.sectionTitle}>难度：</Text>
+            {[...Array(5)].map((_, i) => (
+              <Star 
+                key={i} 
+                size={18} 
+                color={i < skill.difficulty ? '#F1C40F' : '#ECF0F1'} 
+                fill={i < skill.difficulty ? '#F1C40F' : 'transparent'} 
+              />
+            ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>技术要点：</Text>
+          {skill.tips.map((tip, index) => (
+            <View key={index} style={styles.tipItem}>
+              <View style={styles.bulletPoint} />
+              <Text style={styles.tipText}>{tip}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>添加技能备忘录</Text>
+          <TextInput
+            style={styles.input}
+            multiline
+            placeholder="记录你的学习心得和技巧..."
+            value={newNote}
+            onChangeText={setNewNote}
+          />
+          <TouchableOpacity style={styles.addButton} onPress={handleAddNote}>
+            <Text style={styles.addButtonText}>保存备忘录</Text>
+          </TouchableOpacity>
+        </View>
+
+        {skillNotes.length > 0 && (
+          <View style={styles.notesSection}>
+            <Text style={styles.sectionTitle}>历史记录 ({skillNotes.length})</Text>
+            {skillNotes.map(note => (
+              <View key={note.id} style={styles.noteCard}>
+                <Text style={styles.noteDate}>
+                  {new Date(note.createdAt).toLocaleString()}
+                </Text>
+                <Text style={styles.noteContent}>{note.content}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+        
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECF0F1',
+    paddingTop: 50, // for SafeArea manually if not handled
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+  },
+  content: {
+    padding: 16,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  skillName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 4,
+  },
+  skillCategory: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    backgroundColor: '#3498DB',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  checkbox: {
+    padding: 4,
+  },
+  description: {
+    fontSize: 16,
+    color: '#34495E',
+    marginBottom: 16,
+    lineHeight: 24,
+  },
+  difficultyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 12,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  bulletPoint: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#3498DB',
+    marginTop: 8,
+    marginRight: 8,
+  },
+  tipText: {
+    fontSize: 15,
+    color: '#34495E',
+    flex: 1,
+    lineHeight: 22,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ECF0F1',
+    borderRadius: 8,
+    padding: 12,
+    height: 100,
+    textAlignVertical: 'top',
+    marginBottom: 12,
+    fontSize: 15,
+    color: '#2C3E50',
+  },
+  addButton: {
+    backgroundColor: '#27AE60',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  notesSection: {
+    marginBottom: 16,
+  },
+  noteCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3498DB',
+  },
+  noteDate: {
+    fontSize: 12,
+    color: '#7F8C8D',
+    marginBottom: 8,
+  },
+  noteContent: {
+    fontSize: 15,
+    color: '#34495E',
+    lineHeight: 22,
+  }
+});
