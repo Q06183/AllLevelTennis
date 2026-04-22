@@ -125,9 +125,9 @@ export default function SkillDetailScreen() {
             </TouchableOpacity>
           </View>
 
-          {skill.imageUrl && (
+          {skill.imageSource && (
             <Image 
-              source={{ uri: skill.imageUrl }} 
+              source={skill.imageSource} 
               style={styles.skillImage} 
               resizeMode="cover"
             />

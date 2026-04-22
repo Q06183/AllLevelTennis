@@ -27,7 +27,7 @@ export interface Skill {
   description: string; // 技能描述
   tips: string[];   // 技能技巧
   difficulty: number; // 技能难度（1-5）
-  imageUrl?: string; // 技能相关动作的配图URL
+  imageSource?: any; // 技能相关动作的本地配图 (e.g. require('../assets/image.png'))
   painPoints?: PainPoint[]; // 常见痛点分析与推荐练习
 }
 
