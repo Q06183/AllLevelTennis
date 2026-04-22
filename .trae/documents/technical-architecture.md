@@ -254,10 +254,14 @@ const levels = [
   - **顶部输入框场景** (如 `NotesScreen`)：
     - 由于输入区域默认处于屏幕顶端，键盘弹出不会遮挡输入框，因此移除了外层的 `KeyboardAvoidingView` 以防不必要的反向滚动，保留原生的 `ScrollView` 滚动能力。
 
-### 7.5 等级新增技能提示 (New Skill Badge)
+### 7.5 等级新增技能展示与智能定位 (Skill Presentation & Auto-Scroll)
 - **实现位置**：[src/screens/LevelStandardScreen.tsx](file:///workspace/src/screens/LevelStandardScreen.tsx)
-- **功能描述**：在水平标准页面，为了让用户清晰地看出从上一级进阶到当前级需要新掌握哪些内容，系统会自动在“新增技能”名称旁边打上红色的 `NEW` 标签。
+- **功能描述**：
+  - 在水平标准页面，每个等级内的技能被划分为两部分展示：
+    1. **已掌握的技能**：包含所有在上一级中已经要求掌握的技能。该区域默认折叠收起，用户点击可展开查看。
+    2. **进阶需要掌握的新技能**：仅展示相比上一级新增的技能，默认展开，让用户清晰看出进阶的重点。
+  - 用户进入该页面时，系统会自动向上滚动，将用户当前正在努力（首个未完全通关）的等级区域定位到视口中间，提升用户体验。
 - **技术实现**：
-  - 渲染列表时，利用数组索引（`index`）提取上一级（`levels[index - 1]`）的 `skills` 列表。
-  - 通过 Array 的 `filter` 与 `includes` 对比，计算出当前等级独有的差集：`newSkillsInThisLevel`。
-  - 渲染具体的 Skill Item 时，检查其 `skillId` 是否包含在 `newSkillsInThisLevel` 数组中，若在则条件渲染包含 `NEW` 字样的红色角标视图。
+  - **组件拆分与折叠状态**：将每个等级的渲染逻辑提取为单独的 `LevelCard` 组件，利用局部状态 `isMasteredExpanded` 控制“已掌握技能”区域的展开与收起。
+  - **新增与前置技能计算**：利用数组索引（`index`）提取上一级（`levels[index - 1]`）的 `skills` 列表作为前置技能 (`previousLevelSkills`)，通过 `filter` 和 `includes` 计算差集得到当前级新增的技能 (`newSkillsInThisLevel`)，分别映射渲染。进度条 (`progress`) 则依然基于该等级所有的技能要求来计算。
+  - **自动滚动定位**：使用 `FlatList` 替换 `ScrollView`。在组件加载时，通过 `levels.findIndex` 结合 Zustand 的 `skillCompletion` 全局状态计算出首个未通关的等级索引 (`activeLevelIndex`)。在 `onLayout` 事件后结合 setTimeout 使用 `flatListRef.current.scrollToIndex({ index: activeLevelIndex, animated: true, viewPosition: 0.5 })`，确保将未通关区域居中显示。
