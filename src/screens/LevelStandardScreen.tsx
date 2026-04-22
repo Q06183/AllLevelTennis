@@ -22,10 +22,14 @@ export default function LevelStandardScreen() {
     <ScrollView style={styles.container}>
       <Text style={styles.header}>网球水平标准 (1.0 - 5.0)</Text>
       
-      {levels.map((level) => {
+      {levels.map((level, index) => {
         const totalSkills = level.skills.length;
         const completedSkills = level.skills.filter(id => skillCompletion[id]).length;
         const progress = totalSkills === 0 ? 0 : (completedSkills / totalSkills) * 100;
+        
+        // 计算当前 level 相比前一个 level 新增的技能
+        const previousLevelSkills = index > 0 ? levels[index - 1].skills : [];
+        const newSkillsInThisLevel = level.skills.filter(skillId => !previousLevelSkills.includes(skillId));
 
         return (
           <View key={level.id} style={styles.card}>
@@ -64,12 +68,19 @@ export default function LevelStandardScreen() {
                       style={styles.skillNameContainer}
                       onPress={() => handleSkillPress(skillId)}
                     >
-                      <Text style={[
-                        styles.skillName,
-                        isCompleted && styles.skillNameCompleted
-                      ]}>
-                        {skill.name}
-                      </Text>
+                      <View style={styles.skillNameWrapper}>
+                        <Text style={[
+                          styles.skillName,
+                          isCompleted && styles.skillNameCompleted
+                        ]}>
+                          {skill.name}
+                        </Text>
+                        {newSkillsInThisLevel.includes(skillId) && (
+                          <View style={styles.newBadge}>
+                            <Text style={styles.newBadgeText}>NEW</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text style={styles.skillCategory}>{skill.category}</Text>
                     </TouchableOpacity>
                   </View>
@@ -168,6 +179,23 @@ const styles = StyleSheet.create({
   skillNameCompleted: {
     color: '#7F8C8D',
     textDecorationLine: 'line-through',
+  },
+  skillNameWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  newBadge: {
+    backgroundColor: '#E74C3C',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  newBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   skillCategory: {
     fontSize: 12,
