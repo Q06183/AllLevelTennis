@@ -216,7 +216,15 @@ const levels = [
 - **样式设计**：原生化或自定义带有左箭头的返回按钮。
 - **交互流程**：用户在任意主 Tab 访问技能详情页 -> 点击返回按钮 -> 原路退回至发起跳转的所在页面，不跨 Tab 跳转。
 
-### 7.2 全局技能完成状态
+### 7.3 App 品牌图标与启动页适配 (Brand Assets)
+- **实现位置**：
+  - 图标资源：`assets/icon.png`, `assets/splash-icon.png`, `assets/adaptive-icon.png`
+  - 配置文件：`app.json`
+- **功能描述**：替换默认 Expo 白底图标，应用深蓝底色与荧光黄网球主题的自定义矢量图标。
+- **技术实现**：
+  - 使用 Node.js 和 `sharp` 库基于 SVG 渲染高分辨率 PNG 图标。
+  - 在 `app.json` 中将 `splash.backgroundColor` 和 `android.adaptiveIcon.backgroundColor` 配置为深蓝色 `#2C3E50`。
+  - 执行 `npx expo prebuild --clean` 将配置的资源同步到 iOS/Android 原生工程。
 - **实现位置**：
   - 类型定义：[types/index.ts](file:///workspace/src/types/index.ts)
   - 状态管理：[store/index.ts](file:///workspace/src/store/index.ts)

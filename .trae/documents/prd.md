@@ -58,8 +58,11 @@ graph TD
 
 ## 4. User Interface Design
 ### 4.1 Design Style
-- 主色调：#2C3E50（深蓝）、#3498DB（亮蓝）
+- 主色调：#2C3E50（深蓝）、#3498DB（亮蓝）、#DFFF00（网球荧光黄）
 - 辅助色：#E74C3C（红色）、#27AE60（绿色）
+- 品牌资产 (Brand Assets)：
+  - App 主图标 (Icon)：深蓝底色搭配荧光黄网球矢量图案
+  - 启动页 (Splash Screen)：深蓝底色，居中显示网球图案与 "All Level Tennis" 品牌名称
 - 按钮风格：圆角设计
 - 字体：系统默认无衬线字体，主标题18-24px，正文14-16px
 - 布局风格：卡片式布局，底部 Tab 导航栏
