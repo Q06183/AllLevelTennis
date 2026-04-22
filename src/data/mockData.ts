@@ -28,6 +28,34 @@ export const drills: Drill[] = [
     description: "纠正发球抛球不稳定的问题",
     steps: ["在身前放置一个目标（如球拍或拍套）", "练习抛球，让球落在目标上", "不进行击球动作"],
     difficulty: 1
+  },
+  {
+    id: "drill-volley-block",
+    name: "网前挡球练习",
+    description: "纠正截击时引拍过大的问题",
+    steps: ["教练在底线大力击球", "学员在网前保持拍面固定", "只做挡球动作，体会借力打力"],
+    difficulty: 2
+  },
+  {
+    id: "drill-slice-open",
+    name: "切削拍面练习",
+    description: "纠正切削时拍面太关导致下网",
+    steps: ["教练手抛球", "学员体会拍面打开，像端盘子一样", "从上往下切削球的中下部"],
+    difficulty: 2
+  },
+  {
+    id: "drill-footwork-split",
+    name: "分腿垫步(Split Step)练习",
+    description: "纠正启动慢、没有分腿垫步的问题",
+    steps: ["教练准备击球前", "学员在原地轻轻跳起", "在教练击球瞬间双脚同时落地，准备启动"],
+    difficulty: 2
+  },
+  {
+    id: "drill-strategy-cross",
+    name: "斜线相持练习",
+    description: "纠正比赛中盲目改变线路导致失误",
+    steps: ["双方只允许打斜线", "如果打出直线则算失分", "培养斜线相持的耐心和稳定性"],
+    difficulty: 3
   }
 ];
 
@@ -70,27 +98,82 @@ export const skills: Skill[] = [
   { id: "backhand-variation", name: "反手变化击球", category: "反手", description: "使用不同的反手击球方式", tips: ["混合上旋和平击球", "变化节奏和速度", "调整击球角度", "使用切削和放小球", "根据对手位置变化球路", "保持动作一致性"], difficulty: 5, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Backhand+Variation" },
   
   // 发球相关技能
-  { id: "serve-basic", name: "发球基础动作", category: "发球", description: "基本的发球动作", tips: ["正确的抛球（垂直上升）", "身体协调发力", "使用大陆式握拍", "跟随动作完整", "保持平衡", "眼睛紧盯球"], difficulty: 2, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Serve+Basic" },
+  { 
+    id: "serve-basic", 
+    name: "发球基础动作", 
+    category: "发球", 
+    description: "基本的发球动作", 
+    tips: ["正确的抛球（垂直上升）", "身体协调发力", "使用大陆式握拍", "跟随动作完整", "保持平衡", "眼睛紧盯球"], 
+    difficulty: 2, 
+    imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Serve+Basic",
+    painPoints: [
+      { id: "pp-serve-toss", description: "抛球不稳，到处乱跑", recommendedDrillIds: ["drill-serve-toss"] }
+    ]
+  },
   { id: "serve-placement", name: "发球落点控制", category: "发球", description: "控制发球的落点", tips: ["瞄准目标区域", "调整抛球位置", "控制拍面角度", "根据对手位置选择落点", "保持动作一致性", "练习不同落点"], difficulty: 3, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Serve+Placement" },
   { id: "serve-power", name: "发球力量", category: "发球", description: "增加发球的力量", tips: ["充分挥臂，利用鞭打效应", "使用腿部力量蹬地", "提高抛球高度", "身体协调发力", "核心力量参与", "保持动作流畅"], difficulty: 4, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Serve+Power" },
   { id: "serve-spin", name: "发球旋转", category: "发球", description: "添加旋转到发球", tips: ["调整拍面角度", "改变挥拍轨迹", "控制触球点", "练习上旋和侧旋", "保持抛球稳定", "随球动作完整"], difficulty: 4, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Serve+Spin" },
   { id: "serve-variation", name: "发球变化", category: "发球", description: "使用不同类型的发球", tips: ["混合平击、上旋和切削发球", "变化节奏和速度", "调整落点", "根据对手弱点选择发球类型", "保持动作一致性", "练习不同场景的发球"], difficulty: 5, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Serve+Variation" },
   
   // 切削相关技能
-  { id: "slice-basic", name: "切削基础", category: "切削", description: "基本的切削击球", tips: ["打开拍面", "向下切削球的中下部", "控制力量", "使用大陆式握拍", "保持手腕稳定", "随球动作简短"], difficulty: 2, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Slice+Basic" },
+  { 
+    id: "slice-basic", 
+    name: "切削基础", 
+    category: "切削", 
+    description: "基本的切削击球", 
+    tips: ["打开拍面", "向下切削球的中下部", "控制力量", "使用大陆式握拍", "保持手腕稳定", "随球动作简短"], 
+    difficulty: 2, 
+    imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Slice+Basic",
+    painPoints: [
+      { id: "pp-slice-net", description: "切削经常下网，拍面太关", recommendedDrillIds: ["drill-slice-open"] }
+    ]
+  },
   { id: "slice-control", name: "切削控制", category: "切削", description: "控制切削球的方向和深度", tips: ["调整拍面角度", "控制挥拍速度", "瞄准目标", "保持身体平衡", "随球动作向前", "练习不同落点"], difficulty: 3, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Slice+Control" },
   { id: "slice-drop", name: "切削放小球", category: "切削", description: "使用切削技术放小球", tips: ["轻柔触球", "控制力量", "瞄准网前", "打开拍面", "随球动作简短", "练习精准度"], difficulty: 4, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Slice+Drop" },
   
   // 截击相关技能
-  { id: "volley-basic", name: "截击基础", category: "截击", description: "基本的网前截击", tips: ["保持拍头向上", "快速反应", "控制力量", "使用大陆式握拍", "小引拍", "随球动作简短"], difficulty: 2, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Volley+Basic" },
+  { 
+    id: "volley-basic", 
+    name: "截击基础", 
+    category: "截击", 
+    description: "基本的网前截击", 
+    tips: ["保持拍头向上", "快速反应", "控制力量", "使用大陆式握拍", "小引拍", "随球动作简短"], 
+    difficulty: 2, 
+    imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Volley+Basic",
+    painPoints: [
+      { id: "pp-volley-swing", description: "像底线一样大幅度挥拍", recommendedDrillIds: ["drill-volley-block"] }
+    ]
+  },
   { id: "volley-control", name: "截击控制", category: "截击", description: "控制截击球的方向和深度", tips: ["调整拍面", "瞄准目标", "随球移动", "保持身体平衡", "小步调整", "练习不同角度"], difficulty: 3, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Volley+Control" },
   { id: "volley-approach", name: "截击进攻", category: "截击", description: "使用截击技术进攻", tips: ["快速上网", "保持平衡", "果断击球", "瞄准空当", "随球跟进", "练习高压球"], difficulty: 4, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Volley+Approach" },
   
   // 其他技能
-  { id: "footwork-basic", name: "步法基础", category: "步法", description: "基本的网球步法", tips: ["保持移动", "使用小步调整", "提前预判", "保持重心低", "快速启动", "练习侧滑步"], difficulty: 1, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Footwork+Basic" },
+  { 
+    id: "footwork-basic", 
+    name: "步法基础", 
+    category: "步法", 
+    description: "基本的网球步法", 
+    tips: ["保持移动", "使用小步调整", "提前预判", "保持重心低", "快速启动", "练习侧滑步"], 
+    difficulty: 1, 
+    imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Footwork+Basic",
+    painPoints: [
+      { id: "pp-footwork-lazy", description: "不跑动，站在原地等球", recommendedDrillIds: ["drill-footwork-split"] }
+    ]
+  },
   { id: "footwork-advanced", name: "高级步法", category: "步法", description: "高级的网球步法", tips: ["交叉步移动", "滑步", "急停急启", "碎步调整", "前后移动", "左右移动"], difficulty: 3, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Footwork+Advanced" },
   { id: "court-coverage", name: "球场覆盖", category: "步法", description: "有效地覆盖整个球场", tips: ["保持中心位置", "提前移动", "合理分配体力", "预判来球", "快速反应", "练习多方向移动"], difficulty: 4, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Court+Coverage" },
-  { id: "strategy-basic", name: "基本战术", category: "战术", description: "基本的网球战术", tips: ["了解场地位置", "控制比赛节奏", "利用对手弱点", "保持 consistency", "合理运用力量", "专注于打好每一分"], difficulty: 2, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Strategy+Basic" },
+  { 
+    id: "strategy-basic", 
+    name: "基本战术", 
+    category: "战术", 
+    description: "基本的网球战术", 
+    tips: ["了解场地位置", "控制比赛节奏", "利用对手弱点", "保持 consistency", "合理运用力量", "专注于打好每一分"], 
+    difficulty: 2, 
+    imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Strategy+Basic",
+    painPoints: [
+      { id: "pp-strategy-random", description: "盲目发力，没有线路规划", recommendedDrillIds: ["drill-strategy-cross"] }
+    ]
+  },
   { id: "strategy-advanced", name: "高级战术", category: "战术", description: "高级的网球战术", tips: ["变化球路", "调整比赛计划", "心理战术", "根据对手风格调整策略", "利用场地优势", "保持冷静和专注"], difficulty: 5, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Strategy+Advanced" }
 ];
 
