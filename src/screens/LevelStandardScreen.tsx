@@ -1,24 +1,21 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CheckSquare, Square } from 'lucide-react-native';
 
 import { levels, skills } from '../data/mockData';
 import { useStore } from '../store';
-import { RootTabParamList } from '../navigation/types';
+import { LevelStackParamList } from '../navigation/types';
 
-type NavigationProp = BottomTabNavigationProp<RootTabParamList, 'LevelStandard'>;
+type NavigationProp = NativeStackNavigationProp<LevelStackParamList, 'LevelStandard'>;
 
 export default function LevelStandardScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { skillCompletion, toggleSkillCompletion } = useStore();
 
   const handleSkillPress = (skillId: string) => {
-    navigation.navigate('SkillsTab', {
-      screen: 'SkillDetail',
-      params: { skillId },
-    });
+    navigation.navigate('SkillDetail', { skillId });
   };
 
   return (

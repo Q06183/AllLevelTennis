@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Trash2 } from 'lucide-react-native';
 
 import { useStore } from '../store';
 import { skills } from '../data/mockData';
+import { NotesStackParamList } from '../navigation/types';
+
+type NavigationProp = NativeStackNavigationProp<NotesStackParamList, 'NotesList'>;
 
 export default function NotesScreen() {
+  const navigation = useNavigation<NavigationProp>();
   const { notes, addNote, deleteNote } = useStore();
   const [newNote, setNewNote] = useState('');
 
@@ -58,9 +64,12 @@ export default function NotesScreen() {
           notes.map((note) => (
             <View key={note.id} style={styles.noteCard}>
               <View style={styles.noteHeader}>
-                <View style={styles.badgeContainer}>
+                <TouchableOpacity 
+                  style={styles.badgeContainer}
+                  onPress={() => note.skillId !== 'general' && navigation.navigate('SkillDetail', { skillId: note.skillId })}
+                >
                   <Text style={styles.skillBadge}>{getSkillName(note.skillId)}</Text>
-                </View>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleDelete(note.id)} style={styles.deleteButton}>
                   <Trash2 color="#E74C3C" size={18} />
                 </TouchableOpacity>

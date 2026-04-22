@@ -8,10 +8,21 @@ import LevelStandardScreen from '../screens/LevelStandardScreen';
 import SkillsScreen from '../screens/SkillsScreen';
 import SkillDetailScreen from '../screens/SkillDetailScreen';
 import NotesScreen from '../screens/NotesScreen';
-import { RootTabParamList, SkillsStackParamList } from './types';
+import { RootTabParamList, LevelStackParamList, SkillsStackParamList, NotesStackParamList } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const LevelStack = createNativeStackNavigator<LevelStackParamList>();
 const SkillsStack = createNativeStackNavigator<SkillsStackParamList>();
+const NotesStack = createNativeStackNavigator<NotesStackParamList>();
+
+function LevelStackNavigator() {
+  return (
+    <LevelStack.Navigator screenOptions={{ headerShown: false }}>
+      <LevelStack.Screen name="LevelStandard" component={LevelStandardScreen} />
+      <LevelStack.Screen name="SkillDetail" component={SkillDetailScreen} />
+    </LevelStack.Navigator>
+  );
+}
 
 function SkillsStackNavigator() {
   return (
@@ -22,17 +33,26 @@ function SkillsStackNavigator() {
   );
 }
 
+function NotesStackNavigator() {
+  return (
+    <NotesStack.Navigator screenOptions={{ headerShown: false }}>
+      <NotesStack.Screen name="NotesList" component={NotesScreen} />
+      <NotesStack.Screen name="SkillDetail" component={SkillDetailScreen} />
+    </NotesStack.Navigator>
+  );
+}
+
 export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
-            if (route.name === 'LevelStandard') {
+            if (route.name === 'LevelStandardTab') {
               return <Target color={color} size={size} />;
             } else if (route.name === 'SkillsTab') {
               return <CheckSquare color={color} size={size} />;
-            } else if (route.name === 'Notes') {
+            } else if (route.name === 'NotesTab') {
               return <BookOpen color={color} size={size} />;
             }
           },
@@ -43,8 +63,8 @@ export default function AppNavigator() {
         })}
       >
         <Tab.Screen 
-          name="LevelStandard" 
-          component={LevelStandardScreen} 
+          name="LevelStandardTab" 
+          component={LevelStackNavigator} 
           options={{ title: '水平标准' }} 
         />
         <Tab.Screen 
@@ -53,8 +73,8 @@ export default function AppNavigator() {
           options={{ title: '技能' }} 
         />
         <Tab.Screen 
-          name="Notes" 
-          component={NotesScreen} 
+          name="NotesTab" 
+          component={NotesStackNavigator} 
           options={{ title: '记录' }} 
         />
       </Tab.Navigator>

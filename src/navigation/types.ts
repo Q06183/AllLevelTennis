@@ -1,12 +1,22 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
 
 export type RootTabParamList = {
-  LevelStandard: undefined;
+  LevelStandardTab: NavigatorScreenParams<LevelStackParamList>;
   SkillsTab: NavigatorScreenParams<SkillsStackParamList>;
-  Notes: undefined;
+  NotesTab: NavigatorScreenParams<NotesStackParamList>;
+};
+
+export type LevelStackParamList = {
+  LevelStandard: undefined;
+  SkillDetail: { skillId: string };
 };
 
 export type SkillsStackParamList = {
   SkillsList: undefined;
+  SkillDetail: { skillId: string };
+};
+
+export type NotesStackParamList = {
+  NotesList: undefined;
   SkillDetail: { skillId: string };
 };
