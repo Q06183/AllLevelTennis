@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { CheckSquare, Square, ArrowLeft, Star } from 'lucide-react-native';
 
@@ -32,9 +32,13 @@ export default function SkillDetailScreen() {
   const skillNotes = notes.filter(n => n.skillId === skillId);
 
   const handleAddNote = () => {
+    console.log('[SkillDetailScreen] handleAddNote called. Current note:', newNote);
     if (newNote.trim()) {
       addNote({ skillId, content: newNote.trim() });
       setNewNote('');
+      console.log('[SkillDetailScreen] Note added successfully');
+    } else {
+      console.log('[SkillDetailScreen] Note is empty, skipping save');
     }
   };
 
@@ -48,7 +52,15 @@ export default function SkillDetailScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+      >
+        <ScrollView 
+          style={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View>
@@ -98,8 +110,16 @@ export default function SkillDetailScreen() {
             placeholder="记录你的学习心得和技巧..."
             value={newNote}
             onChangeText={setNewNote}
+            onFocus={() => console.log('[SkillDetailScreen] TextInput focused')}
+            onBlur={() => console.log('[SkillDetailScreen] TextInput blurred')}
           />
-          <TouchableOpacity style={styles.addButton} onPress={handleAddNote}>
+          <TouchableOpacity 
+            style={styles.addButton} 
+            onPress={() => {
+              console.log('[SkillDetailScreen] Save button pressed');
+              handleAddNote();
+            }}
+          >
             <Text style={styles.addButtonText}>保存备忘录</Text>
           </TouchableOpacity>
         </View>
@@ -119,7 +139,8 @@ export default function SkillDetailScreen() {
         )}
         
         <View style={{ height: 40 }} />
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
