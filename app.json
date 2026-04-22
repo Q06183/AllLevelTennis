@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.allleveltennisapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -28,7 +29,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "2de35783-5fe3-4f2d-a0b9-2da683194bf4"
+        "projectId": "bd235656-d198-460f-a497-d6d1904b6482"
       }
     }
   }
