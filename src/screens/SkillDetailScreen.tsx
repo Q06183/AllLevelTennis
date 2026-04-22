@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { CheckSquare, Square, ArrowLeft, Star } from 'lucide-react-native';
 
@@ -78,6 +78,14 @@ export default function SkillDetailScreen() {
               )}
             </TouchableOpacity>
           </View>
+
+          {skill.imageUrl && (
+            <Image 
+              source={{ uri: skill.imageUrl }} 
+              style={styles.skillImage} 
+              resizeMode="cover"
+            />
+          )}
 
           <Text style={styles.description}>{skill.description}</Text>
 
@@ -202,6 +210,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  skillImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 16,
+    backgroundColor: '#ECF0F1',
   },
   checkbox: {
     padding: 4,

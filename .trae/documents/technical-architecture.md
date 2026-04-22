@@ -74,6 +74,7 @@ interface Skill {
   description: string; // 技能描述
   tips: string[];   // 技能技巧
   difficulty: number; // 技能难度（1-5）
+  imageUrl?: string; // 技能相关动作的配图URL
 }
 ```
 
