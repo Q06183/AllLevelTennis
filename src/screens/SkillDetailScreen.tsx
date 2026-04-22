@@ -1,15 +1,61 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
-import { CheckSquare, Square, ArrowLeft, Star } from 'lucide-react-native';
+import { CheckSquare, Square, ArrowLeft, Star, ChevronDown, ChevronRight, AlertCircle, Dumbbell } from 'lucide-react-native';
 
-import { skills } from '../data/mockData';
+import { skills, drills } from '../data/mockData';
 import { useStore } from '../store';
 import { SkillsStackParamList } from '../navigation/types';
 
 type DetailRouteProp = RouteProp<SkillsStackParamList, 'SkillDetail'>;
 
 import { useHeaderHeight } from '@react-navigation/elements';
+
+// Component to handle individual pain point rendering with local expanded state
+const PainPointCard = ({ painPoint }: { painPoint: any }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const recommendedDrills = painPoint.recommendedDrillIds.map((id: string) => drills.find(d => d.id === id)).filter(Boolean);
+
+  return (
+    <View style={styles.painPointCard}>
+      <TouchableOpacity 
+        style={styles.painPointHeader}
+        onPress={() => setIsExpanded(!isExpanded)}
+      >
+        <View style={styles.painPointTitleContainer}>
+          <AlertCircle color="#E74C3C" size={18} style={styles.painPointIcon} />
+          <Text style={styles.painPointTitle}>{painPoint.description}</Text>
+        </View>
+        {isExpanded ? (
+          <ChevronDown color="#7F8C8D" size={20} />
+        ) : (
+          <ChevronRight color="#7F8C8D" size={20} />
+        )}
+      </TouchableOpacity>
+      
+      {isExpanded && recommendedDrills.length > 0 && (
+        <View style={styles.drillsContainer}>
+          <Text style={styles.drillsHeader}>推荐练习处方 (Drills)：</Text>
+          {recommendedDrills.map((drill: any) => (
+            <View key={drill.id} style={styles.drillItem}>
+              <View style={styles.drillHeader}>
+                <Dumbbell color="#3498DB" size={16} style={styles.drillIcon} />
+                <Text style={styles.drillName}>{drill.name}</Text>
+              </View>
+              <Text style={styles.drillDescription}>{drill.description}</Text>
+              {drill.steps.map((step: string, index: number) => (
+                <View key={index} style={styles.drillStep}>
+                  <Text style={styles.drillStepNumber}>{index + 1}.</Text>
+                  <Text style={styles.drillStepText}>{step}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
 
 export default function SkillDetailScreen() {
   const route = useRoute<DetailRouteProp>();
@@ -108,6 +154,15 @@ export default function SkillDetailScreen() {
               <Text style={styles.tipText}>{tip}</Text>
             </View>
           ))}
+          
+          {skill.painPoints && skill.painPoints.length > 0 && (
+            <View style={styles.painPointsSection}>
+              <Text style={styles.sectionTitle}>常见痛点与练习：</Text>
+              {skill.painPoints.map((pp, index) => (
+                <PainPointCard key={pp.id || index} painPoint={pp} />
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.card}>
@@ -299,5 +354,91 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#34495E',
     lineHeight: 22,
+  },
+  painPointsSection: {
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#ECF0F1',
+    paddingTop: 16,
+  },
+  painPointCard: {
+    backgroundColor: '#FDF2E9',
+    borderRadius: 8,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#F39C12',
+    overflow: 'hidden',
+  },
+  painPointHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+  },
+  painPointTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  painPointIcon: {
+    marginRight: 8,
+  },
+  painPointTitle: {
+    fontSize: 15,
+    color: '#2C3E50',
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  drillsContainer: {
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#FDF2E9',
+  },
+  drillsHeader: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  drillItem: {
+    backgroundColor: '#F5F7FA',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 8,
+  },
+  drillHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  drillIcon: {
+    marginRight: 6,
+  },
+  drillName: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#3498DB',
+  },
+  drillDescription: {
+    fontSize: 13,
+    color: '#7F8C8D',
+    marginBottom: 8,
+  },
+  drillStep: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  drillStepNumber: {
+    fontSize: 13,
+    color: '#34495E',
+    fontWeight: 'bold',
+    width: 16,
+  },
+  drillStepText: {
+    fontSize: 13,
+    color: '#34495E',
+    flex: 1,
   }
 });

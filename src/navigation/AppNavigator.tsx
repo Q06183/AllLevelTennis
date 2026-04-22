@@ -2,12 +2,13 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { BookOpen, CheckSquare, Target } from 'lucide-react-native';
+import { BookOpen, CheckSquare, Target, Users } from 'lucide-react-native';
 
 import LevelStandardScreen from '../screens/LevelStandardScreen';
 import SkillsScreen from '../screens/SkillsScreen';
 import SkillDetailScreen from '../screens/SkillDetailScreen';
 import NotesScreen from '../screens/NotesScreen';
+import CoachStack from './CoachStack';
 import { RootTabParamList, LevelStackParamList, SkillsStackParamList, NotesStackParamList } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -54,6 +55,8 @@ export default function AppNavigator() {
               return <CheckSquare color={color} size={size} />;
             } else if (route.name === 'NotesTab') {
               return <BookOpen color={color} size={size} />;
+            } else if (route.name === 'CoachTab') {
+              return <Users color={color} size={size} />;
             }
           },
           tabBarActiveTintColor: '#3498DB',
@@ -76,6 +79,11 @@ export default function AppNavigator() {
           name="NotesTab" 
           component={NotesStackNavigator} 
           options={{ title: '记录' }} 
+        />
+        <Tab.Screen 
+          name="CoachTab" 
+          component={CoachStack} 
+          options={{ title: '教练' }} 
         />
       </Tab.Navigator>
     </NavigationContainer>

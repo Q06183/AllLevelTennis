@@ -1,15 +1,69 @@
-import { Skill, Level } from '../types';
+import { Skill, Level, Drill } from '../types';
+
+export const drills: Drill[] = [
+  {
+    id: "drill-fh-catch",
+    name: "身前抓球练习",
+    description: "纠正击球点过后的问题",
+    steps: ["教练在网前手抛球", "学员不拿拍，用非持拍手在身前抓住球", "体会重心前移与身前击球的空间感"],
+    difficulty: 1
+  },
+  {
+    id: "drill-fh-core",
+    name: "药球抛掷练习",
+    description: "纠正手臂发力、无躯干转动的问题",
+    steps: ["双手持实心药球", "模拟正手引拍动作", "蹬地转体将药球向前抛给教练"],
+    difficulty: 2
+  },
+  {
+    id: "drill-bh-balance",
+    name: "单腿反手挥拍",
+    description: "纠正反手击球时身体不平衡的问题",
+    steps: ["单腿站立（前脚）", "保持身体平衡", "进行反手空挥拍练习"],
+    difficulty: 2
+  },
+  {
+    id: "drill-serve-toss",
+    name: "抛球稳定性练习",
+    description: "纠正发球抛球不稳定的问题",
+    steps: ["在身前放置一个目标（如球拍或拍套）", "练习抛球，让球落在目标上", "不进行击球动作"],
+    difficulty: 1
+  }
+];
 
 export const skills: Skill[] = [
   // 正手相关技能
-  { id: "forehand-basic", name: "正手基础击球", category: "正手", description: "基本的正手击球动作", tips: ["保持正确的握拍（推荐半西方式握拍）", "转动身体带动挥拍", "击球点在身体侧前方", "跟随动作完整", "保持手腕固定", "眼睛紧盯球"], difficulty: 1, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Forehand+Basic" },
+  { 
+    id: "forehand-basic", 
+    name: "正手基础击球", 
+    category: "正手", 
+    description: "基本的正手击球动作", 
+    tips: ["保持正确的握拍（推荐半西方式握拍）", "转动身体带动挥拍", "击球点在身体侧前方", "跟随动作完整", "保持手腕固定", "眼睛紧盯球"], 
+    difficulty: 1, 
+    imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Forehand+Basic",
+    painPoints: [
+      { id: "pp-fh-late", description: "击球点太靠后", recommendedDrillIds: ["drill-fh-catch"] },
+      { id: "pp-fh-arm", description: "纯手臂发力，无转体", recommendedDrillIds: ["drill-fh-core"] }
+    ]
+  },
   { id: "forehand-control", name: "正手方向控制", category: "正手", description: "控制正手击球的方向", tips: ["提前准备，判断来球", "瞄准目标区域", "调整拍面角度", "保持身体平衡", "随球移动", "使用小步调整"], difficulty: 2, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Forehand+Control" },
   { id: "forehand-depth", name: "正手深度控制", category: "正手", description: "控制正手击球的深度", tips: ["增加击球力量", "调整击球点高度", "使用上旋", "充分转体", "跟随动作向前", "瞄准底线附近"], difficulty: 3, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Forehand+Depth" },
   { id: "forehand-power", name: "正手力量击球", category: "正手", description: "打出有力的正手击球", tips: ["充分转体，利用核心力量", "使用腿部力量蹬地", "击球点靠前", "加速挥拍", "保持手腕稳定", "随球跟进"], difficulty: 4, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Forehand+Power" },
   { id: "forehand-variation", name: "正手变化击球", category: "正手", description: "使用不同的正手击球方式", tips: ["混合上旋和平击球", "变化节奏和速度", "调整击球角度", "使用放小球和斜线球", "根据对手位置变化球路", "保持动作一致性"], difficulty: 5, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Forehand+Variation" },
   
   // 反手相关技能
-  { id: "backhand-basic", name: "反手基础击球", category: "反手", description: "基本的反手击球动作", tips: ["选择合适的握拍（单手或双手）", "保持平衡", "击球点在身体侧前方", "跟随动作完整", "非持拍手保持平衡", "提前准备"], difficulty: 1, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Backhand+Basic" },
+  { 
+    id: "backhand-basic", 
+    name: "反手基础击球", 
+    category: "反手", 
+    description: "基本的反手击球动作", 
+    tips: ["选择合适的握拍（单手或双手）", "保持平衡", "击球点在身体侧前方", "跟随动作完整", "非持拍手保持平衡", "提前准备"], 
+    difficulty: 1, 
+    imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Backhand+Basic",
+    painPoints: [
+      { id: "pp-bh-balance", description: "击球时身体失去平衡", recommendedDrillIds: ["drill-bh-balance"] }
+    ]
+  },
   { id: "backhand-control", name: "反手方向控制", category: "反手", description: "控制反手击球的方向", tips: ["提前准备，判断来球", "稳定拍面", "随球移动", "调整步法", "瞄准目标", "保持身体协调"], difficulty: 2, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Backhand+Control" },
   { id: "backhand-depth", name: "反手深度控制", category: "反手", description: "控制反手击球的深度", tips: ["增加击球力量", "调整击球点", "使用上旋", "充分转体", "跟随动作向前", "瞄准底线附近"], difficulty: 3, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Backhand+Depth" },
   { id: "backhand-power", name: "反手力量击球", category: "反手", description: "打出有力的反手击球", tips: ["充分转体，利用核心力量", "使用腿部力量蹬地", "击球点靠前", "加速挥拍", "保持手腕稳定", "随球跟进"], difficulty: 4, imageUrl: "https://placehold.co/800x400/2C3E50/DFFF00/png?text=Backhand+Power" },
@@ -46,53 +100,62 @@ export const levels: Level[] = [
     name: "初学者",
     description: "初学者（包括第一次打网球的人）",
     skills: ["forehand-basic", "backhand-basic", "footwork-basic"],
+    expectedTime: "1-5 小时",
   },
   {
     id: "1.5",
     name: "有限经验",
     description: "有限经验，主要致力于将球打回场内",
     skills: ["forehand-basic", "backhand-basic", "footwork-basic", "serve-basic"],
+    expectedTime: "10-20 小时",
   },
   {
     id: "2.0",
     name: "缺乏经验",
     description: "缺乏球场经验，击球技术需要发展",
     skills: ["forehand-basic", "backhand-basic", "footwork-basic", "serve-basic", "volley-basic"],
+    expectedTime: "30-50 小时",
   },
   {
     id: "2.5",
     name: "正在学习",
     description: "正在学习判断球的方向，球场覆盖有限",
     skills: ["forehand-basic", "forehand-control", "backhand-basic", "backhand-control", "footwork-basic", "serve-basic", "volley-basic", "slice-basic"],
+    expectedTime: "60-100 小时",
   },
   {
     id: "3.0",
     name: "相当稳定",
     description: "打中速球时相当稳定，但对所有击球都不舒适",
     skills: ["forehand-basic", "forehand-control", "backhand-basic", "backhand-control", "footwork-basic", "footwork-advanced", "serve-basic", "serve-placement", "volley-basic", "volley-control", "slice-basic", "strategy-basic"],
+    expectedTime: "1-2 年 (规律练习)",
   },
   {
     id: "3.5",
     name: "方向控制不错",
     description: "中速球的方向控制已经不错，但击球的深度和变化还不够",
     skills: ["forehand-basic", "forehand-control", "forehand-depth", "backhand-basic", "backhand-control", "backhand-depth", "footwork-basic", "footwork-advanced", "serve-basic", "serve-placement", "volley-basic", "volley-control", "slice-basic", "slice-control", "strategy-basic"],
+    expectedTime: "2-3 年 (规律练习)",
   },
   {
     id: "4.0",
     name: "有相当把握",
     description: "击球已经有相当的把握，回击中速球有深度",
     skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-power", "backhand-basic", "backhand-control", "backhand-depth", "backhand-power", "footwork-basic", "footwork-advanced", "court-coverage", "serve-basic", "serve-placement", "serve-power", "volley-basic", "volley-control", "volley-approach", "slice-basic", "slice-control", "strategy-basic", "strategy-advanced"],
+    expectedTime: "3-5 年+ (含比赛经验)",
   },
   {
     id: "4.5",
     name: "力量和稳定性",
     description: "力量和稳定性已经成为主要武器",
     skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-power", "forehand-variation", "backhand-basic", "backhand-control", "backhand-depth", "backhand-power", "backhand-variation", "footwork-basic", "footwork-advanced", "court-coverage", "serve-basic", "serve-placement", "serve-power", "serve-spin", "volley-basic", "volley-control", "volley-approach", "slice-basic", "slice-control", "slice-drop", "strategy-basic", "strategy-advanced"],
+    expectedTime: "业余高水平选手",
   },
   {
     id: "5.0",
     name: "良好预判能力",
     description: "有良好的击球预判能力，经常有出色的击球",
     skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-power", "forehand-variation", "backhand-basic", "backhand-control", "backhand-depth", "backhand-power", "backhand-variation", "footwork-basic", "footwork-advanced", "court-coverage", "serve-basic", "serve-placement", "serve-power", "serve-spin", "serve-variation", "volley-basic", "volley-control", "volley-approach", "slice-basic", "slice-control", "slice-drop", "strategy-basic", "strategy-advanced"],
+    expectedTime: "准专业/专业退役",
   }
 ];

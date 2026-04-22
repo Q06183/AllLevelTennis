@@ -74,7 +74,14 @@ const LevelCard = ({
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.levelTitle}>{level.id} - {level.name}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.levelTitle}>{level.id} - {level.name}</Text>
+          {level.expectedTime && (
+            <View style={styles.expectedTimeBadge}>
+              <Text style={styles.expectedTimeText}>{level.expectedTime}</Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.progressText}>{completedSkills}/{totalSkills}</Text>
       </View>
       
@@ -220,6 +227,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#2C3E50',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    flex: 1,
+  },
+  expectedTimeBadge: {
+    backgroundColor: '#F1C40F',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    marginLeft: 8,
+    marginTop: 2,
+  },
+  expectedTimeText: {
+    color: '#2C3E50',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   progressText: {
     fontSize: 14,

@@ -3,6 +3,21 @@ export interface Level {
   name: string;     // 水平名称
   description: string; // 水平描述
   skills: string[]; // 该水平需要掌握的技能ID列表
+  expectedTime?: string; // 预期练习投入时间
+}
+
+export interface PainPoint {
+  id: string;
+  description: string; // 痛点描述
+  recommendedDrillIds: string[]; // 推荐的练习处方ID
+}
+
+export interface Drill {
+  id: string;
+  name: string;
+  description: string;
+  steps: string[];
+  difficulty: number;
 }
 
 export interface Skill {
@@ -13,6 +28,7 @@ export interface Skill {
   tips: string[];   // 技能技巧
   difficulty: number; // 技能难度（1-5）
   imageUrl?: string; // 技能相关动作的配图URL
+  painPoints?: PainPoint[]; // 常见痛点分析与推荐练习
 }
 
 export interface Note {
@@ -25,4 +41,28 @@ export interface Note {
 
 export interface SkillCompletion {
   [skillId: string]: boolean;
+}
+
+export interface SkillAssessment {
+  skillId: string;
+  completed: boolean;
+  painPointIds: string[]; // 学员在该技能上存在的痛点
+}
+
+export interface StudentProfile {
+  id: string;
+  name: string;
+  avatar?: string;
+  currentLevelId: string;
+  assessments: Record<string, SkillAssessment>; // key 为 skillId
+  lastLessonDate?: string;
+}
+
+export interface LessonPlan {
+  id: string;
+  studentId: string;
+  date: string;
+  focusSkillIds: string[];
+  selectedDrillIds: string[];
+  coachNotes: string;
 }
