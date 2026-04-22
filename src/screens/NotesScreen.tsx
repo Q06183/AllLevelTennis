@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Trash2 } from 'lucide-react-native';
@@ -16,13 +16,9 @@ export default function NotesScreen() {
   const [newNote, setNewNote] = useState('');
 
   const handleAddNote = () => {
-    console.log('[NotesScreen] handleAddNote called. Current note:', newNote);
     if (newNote.trim()) {
       addNote({ skillId: 'general', content: newNote.trim() });
       setNewNote('');
-      console.log('[NotesScreen] Note added successfully');
-    } else {
-      console.log('[NotesScreen] Note is empty, skipping save');
     }
   };
 
@@ -40,16 +36,11 @@ export default function NotesScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    <ScrollView 
+      style={styles.container}
+      keyboardShouldPersistTaps="handled"
     >
-      <ScrollView 
-        style={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.header}>我的备忘录</Text>
+      <Text style={styles.header}>我的备忘录</Text>
 
       <View style={styles.addNoteCard}>
         <Text style={styles.sectionTitle}>添加通用备忘录</Text>
@@ -59,15 +50,10 @@ export default function NotesScreen() {
           placeholder="记录今天训练的心得和技巧..."
           value={newNote}
           onChangeText={setNewNote}
-          onFocus={() => console.log('[NotesScreen] TextInput focused')}
-          onBlur={() => console.log('[NotesScreen] TextInput blurred')}
         />
         <TouchableOpacity 
           style={styles.addButton} 
-          onPress={() => {
-            console.log('[NotesScreen] Save button pressed');
-            handleAddNote();
-          }}
+          onPress={handleAddNote}
         >
           <Text style={styles.addButtonText}>保存备忘录</Text>
         </TouchableOpacity>
@@ -103,8 +89,7 @@ export default function NotesScreen() {
         )}
       </View>
       <View style={{ height: 40 }} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+    </ScrollView>
   );
 }
 

@@ -9,10 +9,13 @@ import { SkillsStackParamList } from '../navigation/types';
 
 type DetailRouteProp = RouteProp<SkillsStackParamList, 'SkillDetail'>;
 
+import { useHeaderHeight } from '@react-navigation/elements';
+
 export default function SkillDetailScreen() {
   const route = useRoute<DetailRouteProp>();
   const navigation = useNavigation();
   const { skillId } = route.params;
+  const headerHeight = useHeaderHeight();
   
   const skill = skills.find(s => s.id === skillId);
   const { skillCompletion, toggleSkillCompletion, notes, addNote } = useStore();
@@ -32,18 +35,19 @@ export default function SkillDetailScreen() {
   const skillNotes = notes.filter(n => n.skillId === skillId);
 
   const handleAddNote = () => {
-    console.log('[SkillDetailScreen] handleAddNote called. Current note:', newNote);
     if (newNote.trim()) {
       addNote({ skillId, content: newNote.trim() });
       setNewNote('');
-      console.log('[SkillDetailScreen] Note added successfully');
-    } else {
-      console.log('[SkillDetailScreen] Note is empty, skipping save');
     }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'position' : undefined}
+      contentContainerStyle={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+    >
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <ArrowLeft color="#2C3E50" size={24} />
@@ -52,15 +56,11 @@ export default function SkillDetailScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+      <ScrollView 
+        style={styles.content}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView 
-          style={styles.content}
-          keyboardShouldPersistTaps="handled"
-        >
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View>
@@ -110,15 +110,10 @@ export default function SkillDetailScreen() {
             placeholder="记录你的学习心得和技巧..."
             value={newNote}
             onChangeText={setNewNote}
-            onFocus={() => console.log('[SkillDetailScreen] TextInput focused')}
-            onBlur={() => console.log('[SkillDetailScreen] TextInput blurred')}
           />
           <TouchableOpacity 
             style={styles.addButton} 
-            onPress={() => {
-              console.log('[SkillDetailScreen] Save button pressed');
-              handleAddNote();
-            }}
+            onPress={handleAddNote}
           >
             <Text style={styles.addButtonText}>保存备忘录</Text>
           </TouchableOpacity>
@@ -139,9 +134,8 @@ export default function SkillDetailScreen() {
         )}
         
         <View style={{ height: 40 }} />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
