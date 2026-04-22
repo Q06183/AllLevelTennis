@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "tennis-app",
-    "slug": "tennis-app",
+    "name": "AllLevelTennis",
+    "slug": "allleveltennis",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
