@@ -241,3 +241,23 @@ const levels = [
   2. 系统自动更新全局的技能完成状态
   3. 用户查看其他水平时，"正手基础击球"也会显示为已完成状态
   4. 每个水平的进度条根据全局技能完成状态计算
+
+### 7.4 键盘避让与输入体验优化 (Keyboard UX)
+- **实现位置**：[src/screens/SkillDetailScreen.tsx](file:///workspace/src/screens/SkillDetailScreen.tsx), [src/screens/NotesScreen.tsx](file:///workspace/src/screens/NotesScreen.tsx)
+- **功能描述**：确保应用内的输入框在用户聚焦并弹出键盘时，页面能够自动推高或滚动，避免输入内容被系统软键盘遮挡。
+- **技术实现**：
+  - **底部输入框场景** (如 `SkillDetailScreen`)：
+    - 将 React Native 的 `KeyboardAvoidingView` 置于页面的**绝对根节点**（包裹自定义 Header 和主要内容），使其避让逻辑作用于整个视口。
+    - iOS 上使用 `behavior="position"`，以确保具有固定高度或复杂层级（如 Stack Header 存在时）的页面能通过 Y 轴位移有效避让。
+    - 结合 `@react-navigation/elements` 提供的 `useHeaderHeight()` Hook 动态设置 `keyboardVerticalOffset`。
+    - 为内部的 `ScrollView` 增加 `contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}` 确保在高度被压缩时底部留有足够的缓冲空间，并加上 `keyboardShouldPersistTaps="handled"` 防止点击按钮时触发收起键盘的默认事件。
+  - **顶部输入框场景** (如 `NotesScreen`)：
+    - 由于输入区域默认处于屏幕顶端，键盘弹出不会遮挡输入框，因此移除了外层的 `KeyboardAvoidingView` 以防不必要的反向滚动，保留原生的 `ScrollView` 滚动能力。
+
+### 7.5 等级新增技能提示 (New Skill Badge)
+- **实现位置**：[src/screens/LevelStandardScreen.tsx](file:///workspace/src/screens/LevelStandardScreen.tsx)
+- **功能描述**：在水平标准页面，为了让用户清晰地看出从上一级进阶到当前级需要新掌握哪些内容，系统会自动在“新增技能”名称旁边打上红色的 `NEW` 标签。
+- **技术实现**：
+  - 渲染列表时，利用数组索引（`index`）提取上一级（`levels[index - 1]`）的 `skills` 列表。
+  - 通过 Array 的 `filter` 与 `includes` 对比，计算出当前等级独有的差集：`newSkillsInThisLevel`。
+  - 渲染具体的 Skill Item 时，检查其 `skillId` 是否包含在 `newSkillsInThisLevel` 数组中，若在则条件渲染包含 `NEW` 字样的红色角标视图。
