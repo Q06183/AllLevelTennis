@@ -1,35 +1,37 @@
 ## 1. Architecture Design
 ```mermaid
 graph TD
-  A[Frontend] --> B[Local Storage]
-  A --> C[React Components]
-  C --> D[Pages]
+  A[Frontend App] --> B[AsyncStorage]
+  A --> C[React Native Components]
+  C --> D[Navigators]
   C --> E[Components]
   C --> F[State Management]
-  D --> G[水平标准页面]
-  D --> H[技能页面]
-  D --> I[记录页面]
-  E --> J[SkillCard]
-  E --> K[LevelCard]
-  E --> L[NoteForm]
-  E --> M[NoteList]
+  D --> G[水平标准 Tab]
+  D --> H[技能 Tab]
+  D --> I[记录 Tab]
+  G --> J[SkillDetail Screen]
+  H --> J
+  I --> J
 ```
 
 ## 2. Technology Description
-- Frontend: React@18 + TypeScript + TailwindCSS@3 + Vite
-- Initialization Tool: vite-init
+- Frontend: React Native + Expo + TypeScript
 - Backend: None (使用本地存储)
-- Database: Local Storage (浏览器本地存储)
-- State Management: Zustand
-- UI Library: Lucide React (图标)
+- Database: AsyncStorage (React Native 异步持久化存储)
+- State Management: Zustand + persist middleware
+- UI Library: React Native 原生 StyleSheet + Lucide React Native (图标)
+- Navigation: React Navigation (Bottom Tabs + Native Stack)
 
 ## 3. Route Definitions
-| Route | Purpose |
-|-------|---------|
-| / | 水平标准页面 |
-| /skills | 技能页面 |
-| /skills/:id | 技能详情页面，包含返回按钮 |
-| /notes | 记录页面 |
+| Route/Screen | Purpose | Icon |
+|-------|---------|------|
+| LevelStandardTab | 底部导航左侧 - 水平标准主页栈 | Target |
+| SkillsTab | 底部导航中间 - 技能主页栈 | CheckSquare |
+| NotesTab | 底部导航右侧 - 记录主页栈 | BookOpen |
+| LevelStandard | 水平标准列表展示 | - |
+| SkillsList | 技能列表及横向分类筛选 | - |
+| NotesList | 备忘录记录列表 | - |
+| SkillDetail | 技能详情页面（可在任意 Tab 栈内压入并正确返回上一级） | - |
 
 ## 4. API Definitions
 - 无后端API，使用本地存储模拟数据持久化
@@ -204,12 +206,15 @@ const levels = [
 
 ## 7. 新增功能实现
 
-### 7.1 返回按钮功能
-- **实现位置**：[SkillDetail.tsx](file:///workspace/src/pages/SkillDetail.tsx)
-- **功能描述**：在技能详情页面顶部添加返回按钮，用户点击后回到上一页
-- **技术实现**：使用 React Router 的 `useNavigate()` 钩子，通过 `navigate(-1)` 实现导航返回
-- **样式设计**：灰色按钮，带左箭头图标，悬停时改变颜色，提升用户体验
-- **交互流程**：用户访问技能详情页 -> 点击返回按钮 -> 返回到上一个访问的页面（可能是水平标准页或技能列表页）
+### 7.1 返回按钮及多端导航功能
+- **实现位置**：[SkillDetail.tsx](file:///workspace/src/pages/SkillDetail.tsx) 以及 `navigation/AppNavigator.tsx`
+- **功能描述**：在技能详情页面顶部添加返回按钮，确保用户不论从哪个 Tab 点击进入技能详情，返回时都能回到进入前所在的 Tab 栈内上一页面。
+- **技术实现**：
+  - 弃用全局单栈路由，将 Bottom Tabs 下的每个 Tab（LevelStandardTab、SkillsTab、NotesTab）分别配置为独立的 Native Stack Navigator。
+  - 在每个 Stack 内部分别注册 `SkillDetail` 路由。
+  - 使用 React Navigation 的 `navigation.goBack()` 配合各栈内的历史记录进行独立回退。
+- **样式设计**：原生化或自定义带有左箭头的返回按钮。
+- **交互流程**：用户在任意主 Tab 访问技能详情页 -> 点击返回按钮 -> 原路退回至发起跳转的所在页面，不跨 Tab 跳转。
 
 ### 7.2 全局技能完成状态
 - **实现位置**：
