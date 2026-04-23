@@ -3,8 +3,9 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 export type RootTabParamList = {
   LevelStandardTab: NavigatorScreenParams<LevelStackParamList>;
   SkillsTab: NavigatorScreenParams<SkillsStackParamList>;
-  NotesTab: NavigatorScreenParams<NotesStackParamList>;
-  CoachTab: NavigatorScreenParams<CoachStackParamList>;
+  TrainingRecordTab: NavigatorScreenParams<TrainingRecordStackParamList>;
+  ScheduleTab: NavigatorScreenParams<ScheduleStackParamList>;
+  StudentsTab: NavigatorScreenParams<CoachStackParamList>;
 };
 
 export type LevelStackParamList = {
@@ -17,14 +18,22 @@ export type SkillsStackParamList = {
   SkillDetail: { skillId: string };
 };
 
-export type NotesStackParamList = {
-  NotesList: undefined;
+export type TrainingRecordStackParamList = {
+  TrainingRecordList: undefined;
+  TrainingRecordEdit: { recordId?: string };
   SkillDetail: { skillId: string };
+};
+
+export type ScheduleStackParamList = {
+  ScheduleList: undefined;
+  LessonPlanEdit: { studentId: string; lessonPlanId?: string };
+  StudentDetail: { studentId: string };
 };
 
 export type CoachStackParamList = {
   StudentList: undefined;
   StudentDetail: { studentId: string };
   LessonPlanEdit: { studentId: string; lessonPlanId?: string };
+  LongTermPlanEdit: { studentId: string; planId?: string };
   SkillDetail: { skillId: string };
 };

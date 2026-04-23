@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StudentProfile, LessonPlan, SkillAssessment } from '../types';
+import { StudentProfile, LessonPlan, SkillAssessment, LongTermPlan } from '../types';
 
 interface CoachState {
   students: StudentProfile[];
   lessonPlans: LessonPlan[];
+  longTermPlans: LongTermPlan[];
   
   // Student Actions
   addStudent: (student: Omit<StudentProfile, 'id' | 'assessments'>) => void;
@@ -19,6 +20,11 @@ interface CoachState {
   addLessonPlan: (plan: Omit<LessonPlan, 'id'>) => void;
   updateLessonPlan: (id: string, updates: Partial<LessonPlan>) => void;
   deleteLessonPlan: (id: string) => void;
+
+  // Long Term Plan Actions
+  addLongTermPlan: (plan: Omit<LongTermPlan, 'id' | 'createdAt'>) => void;
+  updateLongTermPlan: (id: string, updates: Partial<LongTermPlan>) => void;
+  deleteLongTermPlan: (id: string) => void;
 }
 
 export const useCoachStore = create<CoachState>()(
@@ -26,6 +32,7 @@ export const useCoachStore = create<CoachState>()(
     (set) => ({
       students: [],
       lessonPlans: [],
+      longTermPlans: [],
 
       addStudent: (studentData) => set((state) => ({
         students: [
@@ -46,7 +53,8 @@ export const useCoachStore = create<CoachState>()(
 
       deleteStudent: (id) => set((state) => ({
         students: state.students.filter(student => student.id !== id),
-        lessonPlans: state.lessonPlans.filter(plan => plan.studentId !== id)
+        lessonPlans: state.lessonPlans.filter(plan => plan.studentId !== id),
+        longTermPlans: state.longTermPlans.filter(plan => plan.studentId !== id)
       })),
 
       updateSkillAssessment: (studentId, skillId, assessmentUpdates) => set((state) => {
@@ -94,6 +102,27 @@ export const useCoachStore = create<CoachState>()(
 
       deleteLessonPlan: (id) => set((state) => ({
         lessonPlans: state.lessonPlans.filter(plan => plan.id !== id)
+      })),
+
+      addLongTermPlan: (planData) => set((state) => {
+        const newPlan: LongTermPlan = {
+          ...planData,
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString()
+        };
+        return {
+          longTermPlans: [...state.longTermPlans, newPlan]
+        };
+      }),
+
+      updateLongTermPlan: (id, updates) => set((state) => ({
+        longTermPlans: state.longTermPlans.map(plan => 
+          plan.id === id ? { ...plan, ...updates } : plan
+        )
+      })),
+
+      deleteLongTermPlan: (id) => set((state) => ({
+        longTermPlans: state.longTermPlans.filter(plan => plan.id !== id)
       })),
     }),
     {

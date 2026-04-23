@@ -21,6 +21,8 @@ export default function LessonPlanEditScreen() {
   const existingPlan = lessonPlans.find(lp => lp.id === lessonPlanId);
 
   const [date, setDate] = useState(existingPlan?.date || new Date().toISOString().split('T')[0]);
+  const [startTime, setStartTime] = useState(existingPlan?.startTime || '14:00');
+  const [endTime, setEndTime] = useState(existingPlan?.endTime || '15:30');
   const [focusSkillIds, setFocusSkillIds] = useState<string[]>(existingPlan?.focusSkillIds || []);
   const [selectedDrillIds, setSelectedDrillIds] = useState<string[]>(existingPlan?.selectedDrillIds || []);
   const [coachNotes, setCoachNotes] = useState(existingPlan?.coachNotes || '');
@@ -57,6 +59,8 @@ export default function LessonPlanEditScreen() {
     if (existingPlan) {
       updateLessonPlan(existingPlan.id, {
         date,
+        startTime,
+        endTime,
         focusSkillIds,
         selectedDrillIds,
         coachNotes
@@ -65,6 +69,8 @@ export default function LessonPlanEditScreen() {
       addLessonPlan({
         studentId,
         date,
+        startTime,
+        endTime,
         focusSkillIds,
         selectedDrillIds,
         coachNotes
@@ -114,6 +120,9 @@ export default function LessonPlanEditScreen() {
 
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
+          <Text style={styles.sectionTitle}>课程基本信息</Text>
+          <Text style={styles.studentName}>学员: {student.name}</Text>
+          
           <Text style={styles.label}>日期 (YYYY-MM-DD)</Text>
           <TextInput
             style={styles.input}
@@ -121,7 +130,28 @@ export default function LessonPlanEditScreen() {
             onChangeText={setDate}
             placeholder="2023-10-01"
           />
-          <Text style={styles.studentName}>学员: {student.name}</Text>
+
+          <View style={styles.timeRow}>
+            <View style={styles.timeColumn}>
+              <Text style={styles.label}>开始时间</Text>
+              <TextInput
+                style={styles.input}
+                value={startTime}
+                onChangeText={setStartTime}
+                placeholder="14:00"
+              />
+            </View>
+            <View style={styles.timeSpacer} />
+            <View style={styles.timeColumn}>
+              <Text style={styles.label}>结束时间</Text>
+              <TextInput
+                style={styles.input}
+                value={endTime}
+                onChangeText={setEndTime}
+                placeholder="15:30"
+              />
+            </View>
+          </View>
         </View>
 
         <View style={styles.card}>
@@ -247,6 +277,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2C3E50',
     marginBottom: 12,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  timeColumn: {
+    flex: 1,
+  },
+  timeSpacer: {
+    width: 16,
   },
   studentName: {
     fontSize: 16,

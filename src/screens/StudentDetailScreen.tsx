@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, FlatList } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ArrowLeft, User, CheckSquare, Square, AlertCircle, PlusCircle, Calendar } from 'lucide-react-native';
+import { ArrowLeft, User, CheckSquare, Square, AlertCircle, PlusCircle, Calendar, Map as MapIcon, ChevronRight } from 'lucide-react-native';
 
 import { useCoachStore } from '../store/coachStore';
 import { CoachStackParamList } from '../navigation/types';
@@ -16,11 +16,12 @@ export default function StudentDetailScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { studentId } = route.params;
   
-  const { students, lessonPlans, updateSkillAssessment, deleteStudent } = useCoachStore();
+  const { students, lessonPlans, longTermPlans, updateSkillAssessment, deleteStudent } = useCoachStore();
   const student = students.find(s => s.id === studentId);
   const studentLessons = lessonPlans.filter(lp => lp.studentId === studentId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const studentLongTermPlans = longTermPlans?.filter(lp => lp.studentId === studentId) || [];
 
-  const [activeTab, setActiveTab] = useState<'assessment' | 'lessons'>('assessment');
+  const [activeTab, setActiveTab] = useState<'assessment' | 'lessons' | 'blueprint'>('assessment');
   const [selectedLevelId, setSelectedLevelId] = useState(student?.currentLevelId || "1.0");
 
   if (!student) {
@@ -190,6 +191,54 @@ export default function StudentDetailScreen() {
     );
   };
 
+  const renderBlueprints = () => {
+    return (
+      <View style={styles.tabContent}>
+        <TouchableOpacity 
+          style={styles.createLessonButton}
+          onPress={() => navigation.navigate('LongTermPlanEdit', { studentId })}
+        >
+          <MapIcon color="#FFFFFF" size={20} />
+          <Text style={styles.createLessonText}>创建10节课长期规划</Text>
+        </TouchableOpacity>
+
+        {studentLongTermPlans.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>暂无长期规划记录</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={studentLongTermPlans}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                style={styles.blueprintCard}
+                onPress={() => navigation.navigate('LongTermPlanEdit', { studentId, planId: item.id })}
+              >
+                <View style={styles.blueprintHeader}>
+                  <View style={styles.blueprintTitleRow}>
+                    <MapIcon color="#2C3E50" size={18} style={{ marginRight: 8 }} />
+                    <Text style={styles.blueprintTitle} numberOfLines={1}>{item.title}</Text>
+                  </View>
+                  <ChevronRight color="#95A5A6" size={18} />
+                </View>
+                
+                <Text style={styles.blueprintDate}>
+                  创建时间: {new Date(item.createdAt).toLocaleDateString()}
+                </Text>
+                
+                <Text style={styles.blueprintSummary}>
+                  包含 {item.lessons?.length || 0} 节课的规划目标
+                </Text>
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={{ paddingBottom: 40 }}
+          />
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -226,9 +275,19 @@ export default function StudentDetailScreen() {
             历史教案
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.segmentTab, activeTab === 'blueprint' && styles.segmentTabActive]}
+          onPress={() => setActiveTab('blueprint')}
+        >
+          <Text style={[styles.segmentText, activeTab === 'blueprint' && styles.segmentTextActive]}>
+            长期规划
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {activeTab === 'assessment' ? renderAssessment() : renderLessons()}
+      {activeTab === 'assessment' && renderAssessment()}
+      {activeTab === 'lessons' && renderLessons()}
+      {activeTab === 'blueprint' && renderBlueprints()}
     </View>
   );
 }
@@ -449,5 +508,44 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#7F8C8D',
     fontStyle: 'italic',
+  },
+  blueprintCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#F39C12',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  blueprintHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  blueprintTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  blueprintTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    flex: 1,
+  },
+  blueprintDate: {
+    fontSize: 13,
+    color: '#95A5A6',
+    marginBottom: 4,
+  },
+  blueprintSummary: {
+    fontSize: 14,
+    color: '#34495E',
   }
 });

@@ -65,10 +65,9 @@ export default function SkillDetailScreen() {
   const headerHeight = useHeaderHeight();
   
   const skill = skills.find(s => s.id === skillId);
-  const { skillCompletion, toggleSkillCompletion, notes, addNote } = useStore();
+  const { skillCompletion, toggleSkillCompletion, sessionRecords } = useStore();
   const isCompleted = !!skillCompletion[skillId];
   
-  const [newNote, setNewNote] = useState('');
   const [isImageViewVisible, setIsImageViewVisible] = useState(false);
   const [viewerKey, setViewerKey] = useState(0);
 
@@ -86,14 +85,7 @@ export default function SkillDetailScreen() {
     );
   }
 
-  const skillNotes = notes.filter(n => n.skillId === skillId);
-
-  const handleAddNote = () => {
-    if (newNote.trim()) {
-      addNote({ skillId, content: newNote.trim() });
-      setNewNote('');
-    }
-  };
+  const skillRecords = sessionRecords.filter(r => r.focusSkillIds.includes(skillId));
 
   return (
     <KeyboardAvoidingView 
@@ -200,32 +192,19 @@ export default function SkillDetailScreen() {
           )}
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>添加技能备忘录</Text>
-          <TextInput
-            style={styles.input}
-            multiline
-            placeholder="记录你的学习心得和技巧..."
-            value={newNote}
-            onChangeText={setNewNote}
-          />
-          <TouchableOpacity 
-            style={styles.addButton} 
-            onPress={handleAddNote}
-          >
-            <Text style={styles.addButtonText}>保存备忘录</Text>
-          </TouchableOpacity>
-        </View>
-
-        {skillNotes.length > 0 && (
+        {/* 训练打卡记录 */}
+        {skillRecords.length > 0 && (
           <View style={styles.notesSection}>
-            <Text style={styles.sectionTitle}>历史记录 ({skillNotes.length})</Text>
-            {skillNotes.map(note => (
-              <View key={note.id} style={styles.noteCard}>
+            <Text style={styles.sectionTitle}>相关打卡记录 ({skillRecords.length})</Text>
+            {skillRecords.map(record => (
+              <View key={record.id} style={styles.noteCard}>
                 <Text style={styles.noteDate}>
-                  {new Date(note.createdAt).toLocaleString()}
+                  {new Date(record.createdAt).toLocaleDateString()}
                 </Text>
-                <Text style={styles.noteContent}>{note.content}</Text>
+                <Text style={styles.noteContent}>时长: {record.duration}小时</Text>
+                {record.notes ? (
+                  <Text style={styles.noteContent}>{record.notes}</Text>
+                ) : null}
               </View>
             ))}
           </View>

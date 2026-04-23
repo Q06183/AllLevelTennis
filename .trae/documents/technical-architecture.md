@@ -6,16 +6,20 @@ graph TD
   C --> D[Navigators]
   C --> E[Components]
   C --> F[State Management]
-  D --> G[水平标准 Tab]
-  D --> H[技能 Tab]
-  D --> I[记录 Tab]
-  D --> K[教练 Tab]
+  D --> |"学生模式"| G[水平标准 Tab]
+  D --> |"学生模式"| H[技能 Tab]
+  D --> |"学生模式"| I[打卡记录 Tab]
+  D --> |"教练模式"| G
+  D --> |"教练模式"| H
+  D --> |"教练模式"| K[日程表 Tab]
+  D --> |"教练模式"| L[学员管理 Tab]
   G --> J[SkillDetail Screen]
   H --> J
   I --> J
-  K --> L[StudentList Screen]
-  L --> M[StudentDetail Screen]
-  M --> N[LessonPlanEdit Screen]
+  L --> M[StudentList Screen]
+  M --> N[StudentDetail Screen]
+  N --> O[LessonPlanEdit Screen]
+  N --> P[LongTermPlan Screen]
 ```
 
 ## 2. Technology Description
@@ -26,21 +30,25 @@ graph TD
 - UI Library: React Native 原生 StyleSheet + Lucide React Native (图标)
 - Navigation: React Navigation (Bottom Tabs + Native Stack)
 - Image Viewer: react-native-image-zoom-viewer (用于图片全屏双指缩放预览)
+- Image Export: react-native-view-shot (用于截取10节课规划为长图), expo-sharing (用于系统原生分享)
 
 ## 3. Route Definitions
 | Route/Screen | Purpose | Icon |
 |-------|---------|------|
-| LevelStandardTab | 底部导航左侧 - 水平标准主页栈 | Target |
-| SkillsTab | 底部导航中间 - 技能主页栈 | CheckSquare |
-| NotesTab | 底部导航右侧 - 记录主页栈 | BookOpen |
-| CoachTab | 底部导航最右侧 - 教练工作台主页栈 | Users |
+| LevelStandardTab | 底部导航 - 水平标准主页栈 (双模式公用) | Target |
+| SkillsTab | 底部导航 - 技能主页栈 (双模式公用) | CheckSquare |
+| TrainingRecordTab | 底部导航 - 打卡记录主页栈 (仅学生模式) | BookOpen |
+| ScheduleTab | 底部导航 - 日程表主页栈 (仅教练模式) | Calendar |
+| StudentsTab | 底部导航 - 学员管理主页栈 (仅教练模式) | Users |
 | LevelStandard | 水平标准列表展示 | - |
 | SkillsList | 技能列表及横向分类筛选 | - |
-| NotesList | 备忘录记录列表 | - |
+| TrainingRecordList| 训练打卡记录列表 | - |
 | SkillDetail | 技能详情页面（可在任意 Tab 栈内压入并正确返回上一级） | - |
+| ScheduleList | 教练日程表视图 | - |
 | StudentList | 学员列表页面 | - |
-| StudentDetail | 单个学员档案页面（技能评估与历史教案） | - |
-| LessonPlanEdit| 教案编辑页面（选择重点技能、痛点与练习处方） | - |
+| StudentDetail | 单个学员档案页面（技能评估、单节教案与长期规划） | - |
+| LessonPlanEdit| 单节教案编辑页面（选择重点技能、痛点与练习处方） | - |
+| LongTermPlanEdit| 10节课长期规划页面（包含长图截图分享功能） | - |
 
 ## 4. API Definitions
 - 无后端API，使用本地存储模拟数据持久化
@@ -53,11 +61,12 @@ graph TD
 ```mermaid
 graph TD
   A[Level] --> B[Skill]
-  B --> C[Note]
+  B --> C[SessionRecord]
   B --> D[PainPoint]
   D --> E[Drill]
   F[Student] --> G[LessonPlan]
   F --> H[SkillAssessment]
+  F --> I[LongTermPlan]
 ```
 
 ### 6.2 Data Definition Language
@@ -104,14 +113,16 @@ interface Drill {
 }
 ```
 
-**Note数据结构**
+**SessionRecord (训练打卡) 数据结构**
 ```typescript
-interface Note {
-  id: string;       // 笔记ID
-  skillId: string;  // 关联的技能ID（为空时表示通用笔记）
-  content: string;  // 笔记内容
-  createdAt: string; // 创建时间（包含日期和时间）
-  updatedAt: string; // 更新时间（包含日期和时间）
+interface SessionRecord {
+  id: string;
+  date: string;      // 打卡日期
+  duration: number;  // 训练时长（例如 1.5 小时）
+  focusSkillIds: string[]; // 本次练习的重点技能
+  notes: string;     // 自由备注/心得
+  createdAt: string;
+  updatedAt: string;
 }
 ```
 
@@ -136,9 +147,25 @@ interface LessonPlan {
   id: string;
   studentId: string;
   date: string;
+  startTime?: string; // 用于日程表视图 (如 "14:00")
+  endTime?: string;   // 用于日程表视图 (如 "15:30")
   focusSkillIds: string[];
   selectedDrillIds: string[];
   coachNotes: string;
+}
+
+interface LongTermPlanLesson {
+  lessonNumber: number; // 课时序号 (1-10)
+  focusSkillIds: string[]; // 本节课重点技能
+  description: string;  // 本节课阶段目标
+}
+
+interface LongTermPlan {
+  id: string;
+  studentId: string;
+  title: string; // 例如 "正手底线相持进阶 10节课规划"
+  lessons: LongTermPlanLesson[];
+  createdAt: string;
 }
 ```
 
@@ -226,3 +253,18 @@ const skills = [
   - 引入第三方库 `react-native-image-zoom-viewer`。
   - 在页面组件中维护 `isImageViewVisible` 状态。
   - 使用 React Native 的 `<Modal>` 组件，将 `ImageViewer` 和自定义的关闭按钮组合在一起渲染，完美绕过缩放时强制隐藏 Header 的问题。
+
+### 7.9 动态底部导航 (Role-Based Navigation)
+- **技术实现**：在 `AppNavigator.tsx` 中，监听 Zustand `coachStore` 的 `isCoachMode` 状态，条件渲染 `Tab.Screen`，实现学生与教练端专属 Tab 栏的动态切换。
+
+### 7.10 结构化训练打卡 (Training Record)
+- **技术实现**：废弃原先单一的 `Note` 文本结构，引入 `SessionRecord` 模型，包含日期选择、时长输入、多选关联重点技能等表单项，数据使用 AsyncStorage 持久化。
+
+### 7.11 教练日程表 (Coach Schedule)
+- **技术实现**：新增 `ScheduleScreen.tsx`。聚合所有的 `LessonPlan` 数据，按 `date` 和 `startTime` 进行排序，使用 `SectionList` 或日历组件 (如 `react-native-calendars`) 渲染当天的所有排课，卡片中展示对应学员的信息。
+
+### 7.12 10节课长期规划与长图导出 (10-Lesson Blueprint & Image Export)
+- **技术实现**：
+  - 在 `StudentDetailScreen` 增加“生成长期规划”入口。
+  - `LongTermPlanEditScreen` 提供批量编辑10节课预期目标的表单。
+  - 使用 `react-native-view-shot` 的 `<ViewShot>` 包裹生成的预览视图卡片，调用 `capture()` 获取本地图片 URI，最后通过 `expo-sharing` 调用系统的原生分享菜单，发送给学员。
