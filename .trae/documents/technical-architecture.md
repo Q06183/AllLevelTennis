@@ -25,6 +25,7 @@ graph TD
 - State Management: Zustand + persist middleware
 - UI Library: React Native 原生 StyleSheet + Lucide React Native (图标)
 - Navigation: React Navigation (Bottom Tabs + Native Stack)
+- Image Viewer: react-native-image-zoom-viewer (用于图片全屏双指缩放预览)
 
 ## 3. Route Definitions
 | Route/Screen | Purpose | Icon |
@@ -217,3 +218,11 @@ const skills = [
   - **状态管理**：新增 `useCoachStore`，利用 `persist` 中间件将 `students` 和 `lessonPlans` 持久化到 AsyncStorage。
   - **学员档案页**：采用顶部分段器切换视图。技能评估视图以列表呈现该学员当前水平的技能，教练可勾选完成或标记 `painPointIds`。
   - **教案编辑页**：表单界面。当教练选择某个包含痛点的重点技能时，系统自动从 `drills` 库中拉取对应的 `Drill` 推荐列表，教练可一键添加至 `selectedDrillIds` 并在课后写入总结 `coachNotes`。
+
+### 7.8 图片全屏预览与双指缩放
+- **实现位置**：`SkillDetailScreen.tsx`
+- **功能描述**：技能详情页的技能配图支持点击放大，并在全屏模式下支持双指缩放和手势滑动关闭。
+- **技术实现**：
+  - 引入第三方库 `react-native-image-zoom-viewer`。
+  - 在页面组件中维护 `isImageViewVisible` 状态。
+  - 使用 React Native 的 `<Modal>` 组件，将 `ImageViewer` 和自定义的关闭按钮组合在一起渲染，完美绕过缩放时强制隐藏 Header 的问题。

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button, KeyboardAvoidingView, Platform, Image, Modal } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
-import { CheckSquare, Square, ArrowLeft, Star, ChevronDown, ChevronRight, AlertCircle, Dumbbell } from 'lucide-react-native';
+import ImageViewer from 'react-native-image-zoom-viewer';
+import { CheckSquare, Square, ArrowLeft, Star, ChevronDown, ChevronRight, AlertCircle, Dumbbell, X } from 'lucide-react-native';
 
 import { skills, drills } from '../data/mockData';
 import { useStore } from '../store';
@@ -68,6 +69,13 @@ export default function SkillDetailScreen() {
   const isCompleted = !!skillCompletion[skillId];
   
   const [newNote, setNewNote] = useState('');
+  const [isImageViewVisible, setIsImageViewVisible] = useState(false);
+  const [viewerKey, setViewerKey] = useState(0);
+
+  const openImageViewer = () => {
+    setViewerKey(prev => prev + 1);
+    setIsImageViewVisible(true);
+  };
 
   if (!skill) {
     return (
@@ -126,11 +134,38 @@ export default function SkillDetailScreen() {
           </View>
 
           {skill.imageSource && (
-            <Image 
-              source={skill.imageSource} 
-              style={styles.skillImage} 
-              resizeMode="cover"
-            />
+            <>
+              <TouchableOpacity activeOpacity={0.9} onPress={openImageViewer}>
+                <Image 
+                  source={skill.imageSource} 
+                  style={styles.skillImage} 
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+              <Modal visible={isImageViewVisible} transparent={true} onRequestClose={() => setIsImageViewVisible(false)}>
+                <ImageViewer
+                  key={viewerKey}
+                  imageUrls={[{ url: '', props: { source: skill.imageSource } }]}
+                  index={0}
+                  enableSwipeDown={false}
+                  backgroundColor="#FFFFFF"
+                  renderIndicator={() => <View />} // 隐藏页码
+                />
+                <View style={styles.viewerCustomCloseContainer}>
+                  <TouchableOpacity 
+                    style={styles.viewerCustomCloseButton}
+                    onPress={() => setIsImageViewVisible(false)}
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                  >
+                    {/* 模拟网球的两条白色曲线缝线 */}
+                    <View style={styles.tennisLineLeft} />
+                    <View style={styles.tennisLineRight} />
+                    {/* 关闭图标 */}
+                    <X color="#2C3E50" size={24} style={{ zIndex: 10 }} />
+                  </TouchableOpacity>
+                </View>
+              </Modal>
+            </>
           )}
 
           <Text style={styles.description}>{skill.description}</Text>
@@ -440,5 +475,45 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#34495E',
     flex: 1,
+  },
+  viewerCustomCloseContainer: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 20,
+    right: 20,
+  },
+  viewerCustomCloseButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#DFFF00', // 网球荧光黄
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: '#E6E6E6', // 淡淡的边缘光泽
+    overflow: 'hidden', // 限制白线不要超出圆形
+  },
+  tennisLineLeft: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    left: -15,
+    top: 7,
+  },
+  tennisLineRight: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    right: -15,
+    top: 7,
   }
 });
