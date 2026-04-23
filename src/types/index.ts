@@ -35,6 +35,7 @@ export interface SessionRecord {
   id: string;
   date: string;      // 打卡日期
   duration: number;  // 训练时长（例如 1.5 小时）
+  trainingTypes?: string[]; // 训练类型多选 (例如 ["底线对拉", "多球训练"])
   focusSkillIds: string[]; // 本次练习的重点技能
   notes: string;     // 自由备注/心得
   createdAt: string;
