@@ -14,18 +14,20 @@ type NavigationProp = NativeStackNavigationProp<CoachStackParamList, 'LessonPlan
 export default function LessonPlanEditScreen() {
   const route = useRoute<RouteProps>();
   const navigation = useNavigation<NavigationProp>();
-  const { studentId, lessonPlanId } = route.params;
+  const { studentId, lessonPlanId, initialDate, initialStartTime, initialEndTime } = route.params;
 
   const { students, lessonPlans, addLessonPlan, updateLessonPlan, deleteLessonPlan } = useCoachStore();
-  const student = students.find(s => s.id === studentId);
   const existingPlan = lessonPlans.find(lp => lp.id === lessonPlanId);
 
-  const [date, setDate] = useState(existingPlan?.date || new Date().toISOString().split('T')[0]);
-  const [startTime, setStartTime] = useState(existingPlan?.startTime || '14:00');
-  const [endTime, setEndTime] = useState(existingPlan?.endTime || '15:30');
+  const [selectedStudentId, setSelectedStudentId] = useState<string>(studentId || existingPlan?.studentId || '');
+  const [date, setDate] = useState(existingPlan?.date || initialDate || new Date().toISOString().split('T')[0]);
+  const [startTime, setStartTime] = useState(existingPlan?.startTime || initialStartTime || '14:00');
+  const [endTime, setEndTime] = useState(existingPlan?.endTime || initialEndTime || '15:30');
   const [focusSkillIds, setFocusSkillIds] = useState<string[]>(existingPlan?.focusSkillIds || []);
   const [selectedDrillIds, setSelectedDrillIds] = useState<string[]>(existingPlan?.selectedDrillIds || []);
   const [coachNotes, setCoachNotes] = useState(existingPlan?.coachNotes || '');
+
+  const student = students.find(s => s.id === selectedStudentId);
 
   // Automatically suggest drills based on student's pain points in the selected skills
   useEffect(() => {
@@ -46,11 +48,13 @@ export default function LessonPlanEditScreen() {
       // Merge unique
       setSelectedDrillIds(Array.from(new Set([...selectedDrillIds, ...suggestedDrills])));
     }
-  }, [focusSkillIds]);
-
-  if (!student) return null;
+  }, [focusSkillIds, student]);
 
   const handleSave = () => {
+    if (!selectedStudentId) {
+      Alert.alert("错误", "请选择学员");
+      return;
+    }
     if (!date.trim()) {
       Alert.alert("错误", "请填写日期");
       return;
@@ -58,6 +62,7 @@ export default function LessonPlanEditScreen() {
 
     if (existingPlan) {
       updateLessonPlan(existingPlan.id, {
+        studentId: selectedStudentId,
         date,
         startTime,
         endTime,
@@ -67,7 +72,7 @@ export default function LessonPlanEditScreen() {
       });
     } else {
       addLessonPlan({
-        studentId,
+        studentId: selectedStudentId,
         date,
         startTime,
         endTime,
@@ -121,7 +126,27 @@ export default function LessonPlanEditScreen() {
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>课程基本信息</Text>
-          <Text style={styles.studentName}>学员: {student.name}</Text>
+          
+          <Text style={styles.label}>选择学员</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.studentScroll}>
+            {students.map(s => (
+              <TouchableOpacity
+                key={s.id}
+                style={[
+                  styles.studentChip,
+                  selectedStudentId === s.id && styles.studentChipActive
+                ]}
+                onPress={() => setSelectedStudentId(s.id)}
+              >
+                <Text style={[
+                  styles.studentChipText,
+                  selectedStudentId === s.id && styles.studentChipTextActive
+                ]}>
+                  {s.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
           
           <Text style={styles.label}>日期 (YYYY-MM-DD)</Text>
           <TextInput
@@ -288,10 +313,29 @@ const styles = StyleSheet.create({
   timeSpacer: {
     width: 16,
   },
-  studentName: {
-    fontSize: 16,
+  studentScroll: {
+    marginBottom: 16,
+  },
+  studentChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#ECF0F1',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  studentChipActive: {
+    backgroundColor: '#E8F4F8',
+    borderColor: '#3498DB',
+  },
+  studentChipText: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    fontWeight: '600',
+  },
+  studentChipTextActive: {
     color: '#3498DB',
-    fontWeight: 'bold',
   },
   sectionTitle: {
     fontSize: 18,

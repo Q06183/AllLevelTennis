@@ -26,14 +26,26 @@ export type TrainingRecordStackParamList = {
 
 export type ScheduleStackParamList = {
   ScheduleList: undefined;
-  LessonPlanEdit: { studentId: string; lessonPlanId?: string };
+  LessonPlanEdit: { 
+    studentId?: string; 
+    lessonPlanId?: string;
+    initialDate?: string;
+    initialStartTime?: string;
+    initialEndTime?: string;
+  };
   StudentDetail: { studentId: string };
 };
 
 export type CoachStackParamList = {
   StudentList: undefined;
   StudentDetail: { studentId: string };
-  LessonPlanEdit: { studentId: string; lessonPlanId?: string };
+  LessonPlanEdit: { 
+    studentId?: string; 
+    lessonPlanId?: string;
+    initialDate?: string;
+    initialStartTime?: string;
+    initialEndTime?: string;
+  };
   LongTermPlanEdit: { studentId: string; planId?: string };
   SkillDetail: { skillId: string };
 };

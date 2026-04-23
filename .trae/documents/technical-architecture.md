@@ -258,10 +258,13 @@ const skills = [
 - **技术实现**：在 `AppNavigator.tsx` 中，监听 Zustand `coachStore` 的 `isCoachMode` 状态，条件渲染 `Tab.Screen`，实现学生与教练端专属 Tab 栏的动态切换。
 
 ### 7.10 结构化训练打卡 (Training Record)
-- **技术实现**：废弃原先单一的 `Note` 文本结构，引入 `SessionRecord` 模型，包含日期选择、时长输入、多选关联重点技能等表单项，数据使用 AsyncStorage 持久化。
+- **技术实现**：废弃原先单一的 `Note` 文本结构，引入 `SessionRecord` 模型，包含日期选择（自定义或近4日快捷标签）、时长步进器输入、多选关联重点技能等表单项，数据使用 AsyncStorage 持久化。引入 `react-native-calendars`，打卡列表默认以日历视图展示，有记录的日期会渲染网球绿色和对勾标记。
 
 ### 7.11 教练日程表 (Coach Schedule)
-- **技术实现**：新增 `ScheduleScreen.tsx`。聚合所有的 `LessonPlan` 数据，按 `date` 和 `startTime` 进行排序，使用 `SectionList` 或日历组件 (如 `react-native-calendars`) 渲染当天的所有排课，卡片中展示对应学员的信息。
+- **技术实现**：新增 `ScheduleScreen.tsx`，以垂直时间轴网格实现排课可视化。
+  - **网格系统**：生成早上 6:00 到晚上 23:00 的绝对定位网格，整点实线、半点虚线。并在空白时段填充浅色文案提示，支持点击空白处自动携带该时段参数跳转至 `LessonPlanEditScreen`（页面内支持横向滑动选择学员）。
+  - **重叠自适应算法**：使用基于贪心着色的分组算法（Clusters & Coloring）处理时间重叠的课程，自动计算 `leftOffset` 和等分的 `cardWidth`，使重叠卡片并排显示。
+  - **原生手势拖拽**：使用 `PanResponder` 结合 `Animated.ValueXY` 响应卡片拖拽。通过 `onMoveShouldSetPanResponderCapture` 解决外层 `ScrollView` 手势冲突；拖拽释放后，计算位移 `dy`，以 15 分钟为粒度吸附并更新 Zustand 中的 `startTime` 与 `endTime`。
 
 ### 7.12 10节课长期规划与长图导出 (10-Lesson Blueprint & Image Export)
 - **技术实现**：
