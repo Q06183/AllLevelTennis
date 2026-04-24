@@ -248,24 +248,21 @@ export default function ScheduleListScreen() {
               onPress={() => setSelectedDate(dateStr)}
             >
               <Text style={[
+                styles.tabDateText,
+                isSelected && styles.tabTextSelected,
+                isToday && !isSelected && styles.tabTextToday
+              ]}>
+                {date.getMonth() + 1}/{date.getDate()}
+              </Text>
+              
+              <Text style={[
                 styles.tabDayName, 
                 isSelected && styles.tabDayNameSelected,
                 isToday && !isSelected && styles.tabTextToday
               ]}>
                 周{WEEK_DAY_NAMES[index % 7]}
               </Text>
-              <View style={[
-                styles.tabDateCircle,
-                isSelected && styles.tabDateCircleSelected
-              ]}>
-                <Text style={[
-                  styles.tabDateText,
-                  isSelected && styles.tabTextSelected,
-                  isToday && !isSelected && styles.tabTextToday
-                ]}>
-                  {date.getDate()}
-                </Text>
-              </View>
+              
               {isToday && <View style={styles.todayDot} />}
             </TouchableOpacity>
           );
@@ -722,34 +719,26 @@ const styles = StyleSheet.create({
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: width / 7.5,
+    width: width / 6.5, // 稍微加宽一点以适应 "12/24" 这种宽度的文字
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   tabItemSelected: {
-    // 选中态可以加额外背景色，目前只通过文字和圆圈体现
-  },
-  tabDayName: {
-    fontSize: 12,
-    color: '#7F8C8D',
-    marginBottom: 6,
-  },
-  tabDayNameSelected: {
-    color: '#3498DB',
-    fontWeight: 'bold',
-  },
-  tabDateCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabDateCircleSelected: {
     backgroundColor: '#3498DB',
   },
   tabDateText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#2C3E50',
+    marginBottom: 4,
+  },
+  tabDayName: {
+    fontSize: 12,
+    color: '#7F8C8D',
+  },
+  tabDayNameSelected: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '500',
   },
   tabTextSelected: {
     color: '#FFFFFF',
@@ -763,7 +752,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: '#3498DB',
     position: 'absolute',
-    bottom: -6,
+    bottom: 2,
   },
   timelineContainer: {
     flex: 1,
