@@ -182,10 +182,10 @@ const drills: Drill[] = [
     difficulty: 1
   },
   {
-    id: "drill-fh-core",
-    name: "药球抛掷练习",
-    description: "纠正手臂发力、无躯干转动的问题",
-    steps: ["双手持实心药球", "模拟正手引拍动作", "蹬地转体将药球向前抛给教练"],
+    id: "drill-topspin-wiper",
+    name: "雨刷器挥拍练习",
+    description: "纠正击球太平、缺乏摩擦的问题",
+    steps: ["在围网前或铁丝网前练习", "拍面贴着网面，从下往上做雨刷器动作", "体会拍面与球网（模拟球）的摩擦感"],
     difficulty: 2
   }
 ];
@@ -204,6 +204,17 @@ const skills = [
     painPoints: [
       { id: "pp-fh-late", description: "击球点太靠后", recommendedDrillIds: ["drill-fh-catch"] },
       { id: "pp-fh-arm", description: "纯手臂发力，无转体", recommendedDrillIds: ["drill-fh-core"] }
+    ]
+  },
+  {
+    id: "forehand-topspin-basic",
+    name: "正手基础上旋",
+    category: "正手",
+    description: "掌握现代网球基本的正手上旋击球，增加过网高度和落地后的弹跳。",
+    tips: ["采用半西方或西方式握拍", "拍头低于击球点", "由下至上刷球", "像雨刷器一样的随挥动作"],
+    difficulty: 3,
+    painPoints: [
+      { id: "pp-fh-topspin-flat", description: "击球太平，没有摩擦导致出界", recommendedDrillIds: ["drill-topspin-wiper"] }
     ]
   }
   // ... 其他技能
@@ -281,4 +292,10 @@ const skills = [
     - **技能详情页 (`SkillDetailScreen`)**：恢复底部的笔记输入框与历史列表，复用 `KeyboardAvoidingView` 的 `position` 避让机制保证输入体验。
     - **全局管理入口 (`SkillsScreen`)**：在屏幕左上角添加快捷按钮，跳转至独立的 `NotesScreen` 管理所有备忘录。
     - **计数角标**：在 `SkillsScreen` 渲染技能卡片时，实时计算每个技能对应的备忘录数量，若大于 0，则在卡片右上角显示带有蓝色书本图标的数字角标。
-  - **渲染防崩机制**：在 React Native 的 JSX 条件渲染中，严格使用三元运算符 `{count > 0 ? <View> : null}` 替代 `{count > 0 && <View>}`，防止因值为 `0` 时触发 `Text strings must be rendered within a <Text> component.` 的红屏错误。
+
+### 7.14 RN 渲染安全加固 (React Native Rendering Safety)
+- **技术背景**：在 React Native 中，若在 `<Text>` 组件之外渲染了字符串（哪怕是空字符串 `""`）或数字 `0`，会导致 `Text strings must be rendered within a <Text> component.` 的致命崩溃。
+- **技术实现**：
+  - 全局排查并重构了所有的条件渲染逻辑。
+  - 对于可能为 `0` 的数字（如 `length` 判断），将 `{count > 0 && <View>}` 重构为 `{count > 0 ? <View> : null}`。
+  - 对于可能为空字符串的变量（如 `location`，`lastLessonDate` 等），将 `{str && <View>}` 重构为 `{str ? <View> : null}` 或 `{!!str && <View>}`，从而保证条件表达式的返回值严格为布尔值或 `null`。

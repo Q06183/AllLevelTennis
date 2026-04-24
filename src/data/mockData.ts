@@ -98,6 +98,27 @@ export const drills: Drill[] = [
     description: "纠正比赛中没有得分套路，全靠临场反应的问题",
     steps: ["一发要求发向外角拉开角度", "对手回球后，必须用正手进攻空当（+1拍）", "反复练习这一得分套路直到形成条件反射"],
     difficulty: 5
+  },
+  {
+    id: "drill-topspin-wiper",
+    name: "雨刷器挥拍练习",
+    description: "纠正击球太平、缺乏摩擦的问题",
+    steps: ["在围网前或铁丝网前练习", "拍面贴着网面，从下往上做雨刷器动作", "体会拍面与球网（模拟球）的摩擦感"],
+    difficulty: 2
+  },
+  {
+    id: "drill-topspin-drive",
+    name: "上旋推挡结合练习",
+    description: "纠正摩擦过多、向前推送不够导致球太浅的问题",
+    steps: ["在发球线后一步站位", "先用平击的方式将球打深", "在平击的基础上逐渐加入向上的摩擦", "要求球必须落在发球线和底线之间"],
+    difficulty: 3
+  },
+  {
+    id: "drill-bh-drop",
+    name: "反手拍头掉落练习",
+    description: "纠正反手拍头掉不下去导致无法产生上旋的问题",
+    steps: ["将球拍夹在腋下或身后", "体会拍头自然下垂的感觉", "从极低的拍头位置启动，向上挥拍捕捉抛来的球"],
+    difficulty: 2
   }
 ];
 
@@ -115,6 +136,36 @@ export const skills: Skill[] = [
       { id: "pp-fh-late", description: "击球点太靠后", recommendedDrillIds: ["drill-fh-catch"] },
       { id: "pp-fh-arm", description: "纯手臂发力，无转体", recommendedDrillIds: ["drill-fh-core"] }
     ]
+  },
+  {
+    id: "forehand-topspin-basic",
+    name: "正手基础上旋",
+    category: "正手",
+    description: "掌握现代网球基本的正手上旋击球，增加过网高度和落地后的弹跳。",
+    tips: ["采用半西方或西方式握拍", "拍头低于击球点", "由下至上刷球", "像雨刷器一样的随挥动作", "增加拍头速度", "身体随转体向上发力"],
+    difficulty: 3,
+    painPoints: [
+      { id: "pp-fh-topspin-flat", description: "击球太平，没有摩擦导致出界", recommendedDrillIds: ["drill-topspin-wiper"] }
+    ]
+  },
+  {
+    id: "forehand-topspin-heavy",
+    name: "正手强烈上旋",
+    category: "正手",
+    description: "打出具有强烈上旋的红土式正手，制造极高的落地弹跳，把对手逼退到底线之后。",
+    tips: ["引拍时拍头更深地掉落", "极快的垂直向上挥拍速度", "强调腿部向上蹬伸的力量", "随挥可以绕过头顶（纳达尔式）", "击球点靠前且稍高"],
+    difficulty: 4,
+    painPoints: [
+      { id: "pp-fh-topspin-short", description: "摩擦过多，向前推送不够导致球太浅", recommendedDrillIds: ["drill-topspin-drive"] }
+    ]
+  },
+  {
+    id: "forehand-topspin-lob",
+    name: "正手上旋挑高球",
+    category: "正手",
+    description: "在被动防守或面对对手上网时，使用正手打出带有强烈上旋的挑高球，越过对手并快速下坠。",
+    tips: ["拍面比正常上旋更打开", "挥拍轨迹更加垂直向上", "利用手腕和小臂快速摩擦", "隐蔽动作，让对手以为是普通击球"],
+    difficulty: 5
   },
   { id: "forehand-control", name: "正手方向控制", category: "正手", description: "控制正手击球的方向", tips: ["提前准备，判断来球", "瞄准目标区域", "调整拍面角度", "保持身体平衡", "随球移动", "使用小步调整"], difficulty: 2, imageSource: require('../../assets/tennis_skills/forehand/forehand-control.png') },
   { 
@@ -144,6 +195,33 @@ export const skills: Skill[] = [
     painPoints: [
       { id: "pp-bh-balance", description: "击球时身体失去平衡", recommendedDrillIds: ["drill-bh-balance"] }
     ]
+  },
+  {
+    id: "backhand-topspin-basic",
+    name: "反手基础上旋",
+    category: "反手",
+    description: "掌握反手（单手或双手）的上旋击球，增加过网保险和控制力。",
+    tips: ["双手反手：非持拍手主导发力摩擦", "单手反手：东方反手握拍，拍头掉落", "由下至上挥拍", "击球点在身体侧前方", "完整的随挥动作"],
+    difficulty: 3,
+    painPoints: [
+      { id: "pp-bh-topspin-net", description: "反手拍头掉不下去，导致击球下网或太平", recommendedDrillIds: ["drill-bh-drop"] }
+    ]
+  },
+  {
+    id: "backhand-topspin-heavy",
+    name: "反手强烈上旋",
+    category: "反手",
+    description: "在反手位制造大角度和高弹跳的强烈上旋球，压制对手。",
+    tips: ["更低的重心准备", "加快向上的拍头速度", "单手反手强调直臂向上提拉", "双手反手强调左手（右手持拍者）的雨刷器动作"],
+    difficulty: 4
+  },
+  {
+    id: "backhand-topspin-lob",
+    name: "反手上旋挑高球",
+    category: "反手",
+    description: "在反手位被动时或面对上网对手，打出带有上旋的过顶球。",
+    tips: ["降低重心，拍头充分掉落", "向斜上方快速提拉", "动作要隐蔽", "双手反手可利用手腕制造额外摩擦"],
+    difficulty: 5
   },
   { id: "backhand-control", name: "反手方向控制", category: "反手", description: "控制反手击球的方向", tips: ["提前准备，判断来球", "稳定拍面", "随球移动", "调整步法", "瞄准目标", "保持身体协调"], difficulty: 2, imageSource: require('../../assets/tennis_skills/backhand/backhand-control.png') },
   { id: "backhand-depth", name: "反手深度控制", category: "反手", description: "控制反手击球的深度", tips: ["增加击球力量", "调整击球点", "使用上旋", "充分转体", "跟随动作向前", "瞄准底线附近"], difficulty: 3, imageSource: require('../../assets/tennis_skills/backhand/backhand-depth.png') },
@@ -318,35 +396,35 @@ export const levels: Level[] = [
     id: "3.0",
     name: "相当稳定",
     description: "打中速球时相当稳定，但对所有击球都不舒适",
-    skills: ["forehand-basic", "forehand-control", "backhand-basic", "backhand-control", "footwork-basic", "footwork-advanced", "serve-basic", "serve-placement", "volley-basic", "volley-control", "slice-basic", "strategy-basic"],
+    skills: ["forehand-basic", "forehand-control", "forehand-topspin-basic", "backhand-basic", "backhand-control", "backhand-topspin-basic", "footwork-basic", "footwork-advanced", "serve-basic", "serve-placement", "volley-basic", "volley-control", "slice-basic", "strategy-basic"],
     expectedTime: "1-2 年 (规律练习)",
   },
   {
     id: "3.5",
     name: "方向控制不错",
     description: "中速球的方向控制已经不错，但击球的深度和变化还不够",
-    skills: ["forehand-basic", "forehand-control", "forehand-depth", "backhand-basic", "backhand-control", "backhand-depth", "footwork-basic", "footwork-advanced", "serve-basic", "serve-placement", "volley-basic", "volley-control", "slice-basic", "slice-control", "strategy-basic"],
+    skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-topspin-basic", "backhand-basic", "backhand-control", "backhand-depth", "backhand-topspin-basic", "footwork-basic", "footwork-advanced", "serve-basic", "serve-placement", "volley-basic", "volley-control", "slice-basic", "slice-control", "strategy-basic"],
     expectedTime: "2-3 年 (规律练习)",
   },
   {
     id: "4.0",
     name: "有相当把握",
     description: "击球已经有相当的把握，回击中速球有深度",
-    skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-power", "backhand-basic", "backhand-control", "backhand-depth", "backhand-power", "footwork-basic", "footwork-advanced", "court-coverage", "serve-basic", "serve-placement", "serve-power", "volley-basic", "volley-control", "volley-approach", "slice-basic", "slice-control", "strategy-basic", "strategy-advanced"],
+    skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-power", "forehand-topspin-basic", "forehand-topspin-heavy", "backhand-basic", "backhand-control", "backhand-depth", "backhand-power", "backhand-topspin-basic", "backhand-topspin-heavy", "footwork-basic", "footwork-advanced", "court-coverage", "serve-basic", "serve-placement", "serve-power", "volley-basic", "volley-control", "volley-approach", "slice-basic", "slice-control", "strategy-basic", "strategy-advanced"],
     expectedTime: "3-5 年+ (含比赛经验)",
   },
   {
     id: "4.5",
     name: "力量和稳定性",
     description: "力量和稳定性已经成为主要武器",
-    skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-power", "forehand-variation", "backhand-basic", "backhand-control", "backhand-depth", "backhand-power", "backhand-variation", "footwork-basic", "footwork-advanced", "court-coverage", "serve-basic", "serve-placement", "serve-power", "serve-spin", "volley-basic", "volley-control", "volley-approach", "slice-basic", "slice-control", "slice-drop", "strategy-basic", "strategy-advanced"],
+    skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-power", "forehand-variation", "forehand-topspin-basic", "forehand-topspin-heavy", "forehand-topspin-lob", "backhand-basic", "backhand-control", "backhand-depth", "backhand-power", "backhand-variation", "backhand-topspin-basic", "backhand-topspin-heavy", "backhand-topspin-lob", "footwork-basic", "footwork-advanced", "court-coverage", "serve-basic", "serve-placement", "serve-power", "serve-spin", "volley-basic", "volley-control", "volley-approach", "slice-basic", "slice-control", "slice-drop", "strategy-basic", "strategy-advanced"],
     expectedTime: "业余高水平选手",
   },
   {
     id: "5.0",
     name: "良好预判能力",
     description: "有良好的击球预判能力，经常有出色的击球",
-    skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-power", "forehand-variation", "backhand-basic", "backhand-control", "backhand-depth", "backhand-power", "backhand-variation", "footwork-basic", "footwork-advanced", "court-coverage", "serve-basic", "serve-placement", "serve-power", "serve-spin", "serve-variation", "volley-basic", "volley-control", "volley-approach", "slice-basic", "slice-control", "slice-drop", "strategy-basic", "strategy-advanced"],
+    skills: ["forehand-basic", "forehand-control", "forehand-depth", "forehand-power", "forehand-variation", "forehand-topspin-basic", "forehand-topspin-heavy", "forehand-topspin-lob", "backhand-basic", "backhand-control", "backhand-depth", "backhand-power", "backhand-variation", "backhand-topspin-basic", "backhand-topspin-heavy", "backhand-topspin-lob", "footwork-basic", "footwork-advanced", "court-coverage", "serve-basic", "serve-placement", "serve-power", "serve-spin", "serve-variation", "volley-basic", "volley-control", "volley-approach", "slice-basic", "slice-control", "slice-drop", "strategy-basic", "strategy-advanced"],
     expectedTime: "准专业/专业退役",
   }
 ];

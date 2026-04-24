@@ -34,7 +34,7 @@ const PainPointCard = ({ painPoint }: { painPoint: any }) => {
         )}
       </TouchableOpacity>
       
-      {isExpanded && recommendedDrills.length > 0 && (
+      {isExpanded && recommendedDrills.length > 0 ? (
         <View style={styles.drillsContainer}>
           <Text style={styles.drillsHeader}>推荐练习处方 (Drills)：</Text>
           {recommendedDrills.map((drill: any) => (
@@ -53,7 +53,7 @@ const PainPointCard = ({ painPoint }: { painPoint: any }) => {
             </View>
           ))}
         </View>
-      )}
+      ) : null}
     </View>
   );
 };
@@ -190,14 +190,14 @@ export default function SkillDetailScreen() {
             </View>
           ))}
           
-          {skill.painPoints && skill.painPoints.length > 0 && (
+          {skill.painPoints && skill.painPoints.length > 0 ? (
             <View style={styles.painPointsSection}>
               <Text style={styles.sectionTitle}>常见痛点与练习：</Text>
               {skill.painPoints.map((pp, index) => (
                 <PainPointCard key={pp.id || index} painPoint={pp} />
               ))}
             </View>
-          )}
+          ) : null}
         </View>
 
         <View style={styles.card}>

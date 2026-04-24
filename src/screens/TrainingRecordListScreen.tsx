@@ -210,7 +210,7 @@ export default function TrainingRecordListScreen() {
             />
           </View>
 
-          {selectedDate && (
+          {selectedDate ? (
             <View style={styles.selectedDateContainer}>
               <Text style={styles.sectionTitle}>
                 {selectedDate} 的训练 ({selectedDateRecords.length})
@@ -223,7 +223,7 @@ export default function TrainingRecordListScreen() {
                 selectedDateRecords.map(renderRecordCard)
               )}
             </View>
-          )}
+          ) : null}
         </ScrollView>
       )}
     </View>

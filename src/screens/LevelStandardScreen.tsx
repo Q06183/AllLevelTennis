@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { CheckSquare, Square, ChevronDown, ChevronRight } from 'lucide-react-native';
+import { CheckSquare, Square, ChevronDown, ChevronRight, Clock } from 'lucide-react-native';
 
 import { levels, skills } from '../data/mockData';
 import { useStore } from '../store';
@@ -76,11 +76,12 @@ const LevelCard = ({
       <View style={styles.cardHeader}>
         <View style={styles.titleContainer}>
           <Text style={styles.levelTitle}>{level.id} - {level.name}</Text>
-          {level.expectedTime && (
+          {level.expectedTime ? (
             <View style={styles.expectedTimeBadge}>
+              <Clock color="#3498DB" size={14} />
               <Text style={styles.expectedTimeText}>{level.expectedTime}</Text>
             </View>
-          )}
+          ) : null}
         </View>
         <Text style={styles.progressText}>{completedSkills}/{totalSkills}</Text>
       </View>

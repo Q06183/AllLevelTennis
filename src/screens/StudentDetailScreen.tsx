@@ -176,12 +176,12 @@ export default function StudentDetailScreen() {
                     <Calendar color="#3498DB" size={18} style={{ marginRight: 8 }} />
                     <Text style={styles.lessonDate}>{item.date}</Text>
                   </View>
-                  {item.location && (
+                  {item.location ? (
                     <View style={styles.lessonLocationRow}>
-                      <MapPin color="#7F8C8D" size={12} style={{ marginRight: 4 }} />
+                      <MapPin color="#7F8C8D" size={14} />
                       <Text style={styles.lessonLocationText} numberOfLines={1}>{item.location}</Text>
                     </View>
-                  )}
+                  ) : null}
                 </View>
                 
                 {item.focusSkillIds.length > 0 && (
@@ -267,12 +267,14 @@ export default function StudentDetailScreen() {
           <User color="#FFFFFF" size={32} />
         </View>
         <Text style={styles.studentNameBig}>{student.name}</Text>
-        {recentLocation && (
+        {recentLocation ? (
           <View style={styles.recentLocationContainer}>
-            <MapPin color="#BDC3C7" size={14} style={{ marginRight: 4 }} />
-            <Text style={styles.recentLocationText}>{recentLocation}</Text>
+            <MapPin color="#3498DB" size={14} style={{ marginRight: 4 }} />
+            <Text style={styles.recentLocationText} numberOfLines={1}>
+              最近场地: {recentLocation}
+            </Text>
           </View>
-        )}
+        ) : null}
       </View>
 
       <View style={styles.segmentControl}>

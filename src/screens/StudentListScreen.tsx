@@ -58,9 +58,9 @@ export default function StudentListScreen() {
         <View style={styles.studentInfo}>
           <Text style={styles.studentName}>{item.name}</Text>
           <Text style={styles.studentLevel}>水平: {item.currentLevelId} ({levelName})</Text>
-          {item.lastLessonDate && (
-            <Text style={styles.lastLesson}>上次上课: {item.lastLessonDate}</Text>
-          )}
+          {item.lastLessonDate ? (
+              <Text style={styles.lastLesson}>上次上课: {item.lastLessonDate}</Text>
+            ) : null}
         </View>
         <ChevronRight color="#BDC3C7" size={24} />
       </TouchableOpacity>
