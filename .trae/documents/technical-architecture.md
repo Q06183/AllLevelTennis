@@ -264,9 +264,9 @@ const skills = [
 
 ### 7.11 教练日程表 (Coach Schedule)
 - **技术实现**：新增 `ScheduleScreen.tsx`，以垂直时间轴网格实现排课可视化。
-  - **网格系统**：生成早上 6:00 到晚上 23:00 的绝对定位网格，整点实线、半点虚线。并在空白时段填充浅色文案提示，支持点击空白处自动携带该时段参数跳转至 `LessonPlanEditScreen`（页面内支持横向滑动选择学员）。
+  - **网格系统与时段折叠**：生成早上 6:00 到晚上 24:00 的绝对定位网格。为了减少无效滑动，引入 `getTimeY` 和 `getYTime` 进行非线性的时间和像素映射：默认折叠 06:00-08:00 与 22:00-24:00 的非核心时段，并渲染为点击展开的提示按钮；如果 `dailyLessons` 在这些时段内已有排课，则该时段会自动展开。在空白核心时段填充浅色文案提示，支持点击自动携带时间参数跳转排课。
   - **重叠自适应算法**：使用基于贪心着色的分组算法（Clusters & Coloring）处理时间重叠的课程，自动计算 `leftOffset` 和等分的 `cardWidth`，使重叠卡片并排显示。
-  - **原生手势拖拽**：使用 `PanResponder` 结合 `Animated.ValueXY` 响应卡片拖拽。通过 `onMoveShouldSetPanResponderCapture` 解决外层 `ScrollView` 手势冲突；拖拽释放后，计算位移 `dy`，以 15 分钟为粒度吸附并更新 Zustand 中的 `startTime` 与 `endTime`。
+  - **原生手势拖拽**：使用 `PanResponder` 结合 `Animated.ValueXY` 响应卡片拖拽。为了解决卡片拖拽与外层 `ScrollView` 滚动的冲突，在 `onMoveShouldSetPanResponder` 中引入 300ms 长按判定：快速滑动时将手势交还给 `ScrollView` 以保证页面顺畅滚动，仅在长按停顿后强制接管并锁定滚动；通过严格的位移和状态校验避免松手时误触跳转。拖拽释放后，通过非线性的 `getYTime` 计算位移 `dy` 对应的具体时间，以 15 分钟为粒度吸附并更新 Zustand 中的 `startTime` 与 `endTime`。
 
 ### 7.12 10节课长期规划与长图导出 (10-Lesson Blueprint & Image Export)
 - **技术实现**：

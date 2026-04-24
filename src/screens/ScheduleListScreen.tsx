@@ -10,9 +10,13 @@ import { LessonPlan } from '../types';
 
 type NavigationProp = NativeStackNavigationProp<ScheduleStackParamList, 'ScheduleList'>;
 
-const { width } = Dimensions.get('window');
+const { width, height: screenHeight } = Dimensions.get('window');
 const START_HOUR = 6;  // 日程表从早上 6 点开始
-const END_HOUR = 23;   // 日程表到晚上 23 点结束
+const END_HOUR = 24;   // 日程表到晚上 24 点结束
+const CORE_START_HOUR = 8;
+const CORE_END_HOUR = 22;
+const COLLAPSED_HEIGHT = 40; // 折叠按钮的高度
+
 const HOUR_HEIGHT = 80; // 每小时对应 80 像素高度
 const TIME_COLUMN_WIDTH = 60; // 左侧时间列宽度
 
@@ -59,6 +63,10 @@ export default function ScheduleListScreen() {
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [currentTime, setCurrentTime] = useState<number>(0);
   
+  // 手动折叠状态
+  const [manualMorningExpanded, setManualMorningExpanded] = useState(false);
+  const [manualEveningExpanded, setManualEveningExpanded] = useState(false);
+
   const scrollViewRef = useRef<ScrollView>(null);
 
   // 定时更新当前时间
@@ -73,27 +81,126 @@ export default function ScheduleListScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // 自动滚动到当前时间附近
-  useEffect(() => {
-    if (currentTime >= START_HOUR && currentTime <= END_HOUR) {
-      const yOffset = (currentTime - START_HOUR) * HOUR_HEIGHT - 100;
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: Math.max(0, yOffset), animated: true });
-      }, 500);
-    }
-  }, []);
-
-  const weekDays = useMemo(() => getWeekDays(), []);
-
   // 筛选出选中日期的所有课程
   const dailyLessons = useMemo(() => {
     return lessonPlans.filter(plan => plan.date === selectedDate && plan.startTime && plan.endTime);
   }, [lessonPlans, selectedDate]);
 
+  // 当切换日期时，重置手动展开状态
+  useEffect(() => {
+    setManualMorningExpanded(false);
+    setManualEveningExpanded(false);
+  }, [selectedDate]);
+
+  // 动态计算是否需要展开
+  const isMorningExpanded = useMemo(() => {
+    const hasEarlyLessons = dailyLessons.some(l => parseTime(l.startTime)! < CORE_START_HOUR);
+    return hasEarlyLessons || manualMorningExpanded;
+  }, [dailyLessons, manualMorningExpanded]);
+
+  const isEveningExpanded = useMemo(() => {
+    const hasLateLessons = dailyLessons.some(l => parseTime(l.endTime)! > CORE_END_HOUR);
+    return hasLateLessons || manualEveningExpanded;
+  }, [dailyLessons, manualEveningExpanded]);
+
+  // 非线性时间映射函数：将时间转换为 Y 坐标
+  const getTimeY = (time: number) => {
+    let y = 0;
+    
+    // 1. 处理早间时段
+    if (isMorningExpanded) {
+      if (time <= CORE_START_HOUR) return (time - START_HOUR) * HOUR_HEIGHT;
+      y += (CORE_START_HOUR - START_HOUR) * HOUR_HEIGHT;
+    } else {
+      if (time < CORE_START_HOUR) return 0; // 在折叠按钮内部
+      if (time === CORE_START_HOUR) return COLLAPSED_HEIGHT;
+      y += COLLAPSED_HEIGHT;
+    }
+
+    // 2. 处理核心时段
+    if (time <= CORE_END_HOUR) {
+      return y + (time - CORE_START_HOUR) * HOUR_HEIGHT;
+    }
+    y += (CORE_END_HOUR - CORE_START_HOUR) * HOUR_HEIGHT;
+
+    // 3. 处理晚间时段
+    if (isEveningExpanded) {
+      return y + (time - CORE_END_HOUR) * HOUR_HEIGHT;
+    } else {
+      return y; // 在晚间折叠按钮上方
+    }
+  };
+
+  // 逆向映射函数：将 Y 坐标转换为时间
+  const getYTime = (y: number) => {
+    let currentY = 0;
+    
+    // 1. 早间时段
+    if (isMorningExpanded) {
+      const morningHeight = (CORE_START_HOUR - START_HOUR) * HOUR_HEIGHT;
+      if (y <= morningHeight) return START_HOUR + y / HOUR_HEIGHT;
+      currentY += morningHeight;
+    } else {
+      if (y <= COLLAPSED_HEIGHT) return CORE_START_HOUR; // 如果拖到折叠按钮上，吸附到 8:00
+      currentY += COLLAPSED_HEIGHT;
+    }
+
+    // 2. 核心时段
+    const coreHeight = (CORE_END_HOUR - CORE_START_HOUR) * HOUR_HEIGHT;
+    if (y <= currentY + coreHeight) {
+      return CORE_START_HOUR + (y - currentY) / HOUR_HEIGHT;
+    }
+    currentY += coreHeight;
+
+    // 3. 晚间时段
+    if (isEveningExpanded) {
+      return CORE_END_HOUR + (y - currentY) / HOUR_HEIGHT;
+    } else {
+      return CORE_END_HOUR; // 如果拖到折叠区，吸附到 22:00
+    }
+  };
+
+  // 自动滚动到当前时间附近（居中显示）
+  // 确保每天只自动滚动一次，避免用户展开折叠区域时发生突兀的页面跳动
+  const hasAutoScrolledRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    // 只有选中的是今天，且今天还没执行过自动滚动时，才执行
+    if (selectedDate === todayStr && currentTime >= START_HOUR && currentTime <= END_HOUR && hasAutoScrolledRef.current !== selectedDate) {
+      hasAutoScrolledRef.current = selectedDate; // 标记今天已滚动
+
+      // 计算当前时间在网格中的绝对 Y 坐标
+      const currentY = getTimeY(currentTime);
+      
+      // 预估顶部 Header 和 Tab 栏的高度（这里假设头部高度约为 140 像素）
+      const headerHeight = 140;
+      // 可视区域高度
+      const visibleHeight = screenHeight - headerHeight;
+      
+      // 目标滚动位置：使当前时间线正好在屏幕垂直居中
+      const yOffset = currentY - (visibleHeight / 2);
+      
+      // 使用 requestAnimationFrame 确保在布局计算完成后滚动
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({ 
+            y: Math.max(0, yOffset), 
+            animated: true 
+          });
+        }, 300); // 留出 300ms 给组件渲染和折叠状态计算
+      });
+    } else if (selectedDate !== todayStr) {
+      // 切换到其他日期时重置标记，这样切回来时能重新居中
+      hasAutoScrolledRef.current = null;
+    }
+  }, [selectedDate, currentTime]);
+
   const getStudentName = (studentId: string) => {
     const student = students.find(s => s.id === studentId);
     return student ? student.name : '未知学员';
   };
+
+  const weekDays = useMemo(() => getWeekDays(), []);
 
   // 渲染顶部周视图 Tab
   const renderWeekTabs = () => {
@@ -115,7 +222,7 @@ export default function ScheduleListScreen() {
             >
               <Text style={[
                 styles.tabDayName, 
-                isSelected && styles.tabTextSelected,
+                isSelected && styles.tabDayNameSelected,
                 isToday && !isSelected && styles.tabTextToday
               ]}>
                 周{WEEK_DAY_NAMES[index]}
@@ -143,57 +250,90 @@ export default function ScheduleListScreen() {
   // 渲染网格线与可点击时段
   const renderGridLines = () => {
     const lines = [];
-    for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
-      const top = (hour - START_HOUR) * HOUR_HEIGHT;
-      
-      // 点击整点时段
+
+    // 早间折叠按钮
+    if (!isMorningExpanded) {
       lines.push(
         <TouchableOpacity 
-          key={`slot-${hour}-00`} 
-          style={[styles.timeSlot, { top, height: HOUR_HEIGHT / 2 }]} 
-          onPress={() => handleTimeSlotPress(hour, false)}
+          key="morning-btn" 
+          style={[styles.collapsedBtn, { top: 0, height: COLLAPSED_HEIGHT }]} 
+          onPress={() => setManualMorningExpanded(true)}
         >
-          <View style={styles.timeSlotHint}>
-            <Text style={styles.timeSlotHintText}>{`${hour.toString().padStart(2, '0')}:00 - ${(hour + 1).toString().padStart(2, '0')}:00 点击排课`}</Text>
-          </View>
+          <Clock size={14} color="#7F8C8D" style={{marginRight: 6}} />
+          <Text style={styles.collapsedBtnText}>点击展开早间时段 (06:00 - 08:00)</Text>
         </TouchableOpacity>
       );
-      
-      // 点击半点时段
-      if (hour < END_HOUR) {
-        lines.push(
-          <TouchableOpacity 
-            key={`slot-${hour}-30`} 
-            style={[styles.timeSlot, { top: top + HOUR_HEIGHT / 2, height: HOUR_HEIGHT / 2 }]} 
-            onPress={() => handleTimeSlotPress(hour, true)}
-          >
-            <View style={styles.timeSlotHint}>
-              <Text style={styles.timeSlotHintText}>{`${hour.toString().padStart(2, '0')}:30 - ${(hour + 1).toString().padStart(2, '0')}:30 点击排课`}</Text>
-            </View>
-          </TouchableOpacity>
-        );
-      }
+    }
 
+    const startRender = isMorningExpanded ? START_HOUR : CORE_START_HOUR;
+    const endRender = isEveningExpanded ? END_HOUR : CORE_END_HOUR;
+
+    for (let hour = startRender; hour <= endRender; hour++) {
+      const top = getTimeY(hour);
+      
       // 渲染整点线
       lines.push(
         <View key={`line-${hour}`} style={[styles.gridRow, { top }]} pointerEvents="none">
           <View style={styles.timeLabelContainer}>
-            <Text style={styles.timeLabel}>{`${hour.toString().padStart(2, '0')}:00`}</Text>
+            <Text style={styles.timeLabel}>{`${hour === 24 ? '00' : hour.toString().padStart(2, '0')}:00`}</Text>
           </View>
           <View style={styles.gridLine} />
         </View>
       );
       
       // 渲染半点虚线
-      if (hour < END_HOUR) {
+      if (hour < endRender || (isEveningExpanded && hour < END_HOUR)) {
         lines.push(
-          <View key={`half-${hour}`} style={[styles.gridRow, { top: top + HOUR_HEIGHT / 2 }]} pointerEvents="none">
+          <View key={`half-${hour}`} style={[styles.gridRow, { top: getTimeY(hour + 0.5) }]} pointerEvents="none">
             <View style={styles.timeLabelContainer} />
             <View style={[styles.gridLine, styles.gridLineDashed]} />
           </View>
         );
       }
+
+      if (hour < endRender || (isEveningExpanded && hour < END_HOUR)) {
+        // 点击整点时段
+        lines.push(
+          <TouchableOpacity 
+            key={`slot-${hour}-00`} 
+            style={[styles.timeSlot, { top, height: HOUR_HEIGHT / 2 }]} 
+            onPress={() => handleTimeSlotPress(hour, false)}
+          >
+            <View style={styles.timeSlotHint}>
+              <Text style={styles.timeSlotHintText}>{`${hour.toString().padStart(2, '0')}:00 - ${hour.toString().padStart(2, '0')}:30 点击排课`}</Text>
+            </View>
+          </TouchableOpacity>
+        );
+        
+        // 点击半点时段
+        lines.push(
+          <TouchableOpacity 
+            key={`slot-${hour}-30`} 
+            style={[styles.timeSlot, { top: getTimeY(hour + 0.5), height: HOUR_HEIGHT / 2 }]} 
+            onPress={() => handleTimeSlotPress(hour, true)}
+          >
+            <View style={styles.timeSlotHint}>
+              <Text style={styles.timeSlotHintText}>{`${hour.toString().padStart(2, '0')}:30 - ${(hour + 1 === 24 ? '00' : hour + 1).toString().padStart(2, '0')}:00 点击排课`}</Text>
+            </View>
+          </TouchableOpacity>
+        );
+      }
     }
+
+    // 晚间折叠按钮
+    if (!isEveningExpanded) {
+      lines.push(
+        <TouchableOpacity 
+          key="evening-btn" 
+          style={[styles.collapsedBtn, { top: getTimeY(CORE_END_HOUR), height: COLLAPSED_HEIGHT }]} 
+          onPress={() => setManualEveningExpanded(true)}
+        >
+          <Clock size={14} color="#7F8C8D" style={{marginRight: 6}} />
+          <Text style={styles.collapsedBtnText}>点击展开晚间时段 (22:00 - 24:00)</Text>
+        </TouchableOpacity>
+      );
+    }
+
     return lines;
   };
 
@@ -205,7 +345,7 @@ export default function ScheduleListScreen() {
     const endM = startM;
     
     const startTimeStr = `${hour.toString().padStart(2, '0')}:${startM}`;
-    const endTimeStr = `${endH.toString().padStart(2, '0')}:${endM}`;
+    const endTimeStr = `${endH === 24 ? '00' : endH.toString().padStart(2, '0')}:${endM}`;
     
     navigation.navigate('LessonPlanEdit', {
       initialDate: selectedDate,
@@ -226,46 +366,43 @@ const DraggableLessonCard = ({
   getStudentName, 
   updateLessonPlan,
   scrollViewRef,
-  totalColumns
+  totalColumns,
+  getTimeY,
+  getYTime
 }: any) => {
   const pan = useRef(new Animated.ValueXY()).current;
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartY = useRef(0);
+  const [isDraggingState, setIsDraggingState] = useState(false);
+  const isDraggingRef = useRef(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
-
-  const displayName = lesson.studentName || (lesson.studentId ? getStudentName(lesson.studentId) : '未知学员');
+  const hasMovedRef = useRef(false);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onStartShouldSetPanResponderCapture: () => false,
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dy) > 10 || Math.abs(gestureState.dx) > 10 || isDragging;
-      },
-      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-        return Math.abs(gestureState.dy) > 10 || Math.abs(gestureState.dx) > 10 || isDragging;
-      },
+      // 只有在长按触发了拖拽模式后，才接管移动事件，否则交还给 ScrollView 滚动
+      onMoveShouldSetPanResponder: () => isDraggingRef.current,
+      onMoveShouldSetPanResponderCapture: () => isDraggingRef.current,
       onPanResponderGrant: (evt, gestureState) => {
-        dragStartY.current = gestureState.y0;
+        hasMovedRef.current = false;
         pan.setOffset({ x: 0, y: 0 });
         pan.setValue({ x: 0, y: 0 });
 
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
         longPressTimer.current = setTimeout(() => {
-          setIsDragging(true);
-          scrollViewRef.current?.setNativeProps({ scrollEnabled: false });
-        }, 300);
+          if (!hasMovedRef.current) {
+            isDraggingRef.current = true;
+            setIsDraggingState(true);
+            scrollViewRef.current?.setNativeProps({ scrollEnabled: false });
+          }
+        }, 300); // 300ms 长按触发拖拽
       },
       onPanResponderMove: (evt, gestureState) => {
-        if (!isDragging && (Math.abs(gestureState.dy) > 10 || Math.abs(gestureState.dx) > 10)) {
-          if (longPressTimer.current) clearTimeout(longPressTimer.current);
-          setIsDragging(true);
-          scrollViewRef.current?.setNativeProps({ scrollEnabled: false });
+        if (Math.abs(gestureState.dy) > 5 || Math.abs(gestureState.dx) > 5) {
+          hasMovedRef.current = true;
         }
-        
-        if (isDragging || Math.abs(gestureState.dy) > 10) {
-          // Use animated value for smooth dragging instead of setState
-          Animated.event([null, { dy: pan.y }], { useNativeDriver: false })(evt, gestureState);
+        if (isDraggingRef.current) {
+          pan.setValue({ x: 0, y: gestureState.dy });
         }
       },
       onPanResponderRelease: (evt, gestureState) => {
@@ -273,20 +410,22 @@ const DraggableLessonCard = ({
         
         const totalDy = gestureState.dy;
 
-        if (!isDragging && Math.abs(totalDy) <= 10) {
-          // It's a click
+        // 如果没有进入拖拽状态，且移动距离很小，且确实没有触发过大幅度移动 -> 认为是点击
+        if (!isDraggingRef.current && Math.abs(totalDy) <= 5 && !hasMovedRef.current) {
           navigation.navigate('LessonPlanEdit', { 
             studentId: lesson.studentId, 
             lessonPlanId: lesson.id 
           });
-        } else {
-          // It's a drag release
+        } 
+        // 否则如果是从拖拽状态释放
+        else if (isDraggingRef.current) {
           const newTop = top + totalDy;
-          const newStartHourRaw = START_HOUR + newTop / HOUR_HEIGHT;
+          const newStartHourRaw = getYTime(newTop);
           const snappedStartHour = Math.round(newStartHourRaw * 4) / 4;
           
-          const finalStartHour = Math.max(START_HOUR, Math.min(END_HOUR - (height / HOUR_HEIGHT), snappedStartHour));
-          const finalEndHour = finalStartHour + (height / HOUR_HEIGHT);
+          const duration = lesson.end - lesson.start;
+          const finalStartHour = Math.max(START_HOUR, Math.min(END_HOUR - duration, snappedStartHour));
+          const finalEndHour = finalStartHour + duration;
           
           const newStartTime = formatTime(finalStartHour);
           const newEndTime = formatTime(finalEndHour);
@@ -299,8 +438,8 @@ const DraggableLessonCard = ({
           }
         }
         
-        // Reset state
-        setIsDragging(false);
+        isDraggingRef.current = false;
+        setIsDraggingState(false);
         pan.flattenOffset();
         Animated.spring(pan, {
           toValue: { x: 0, y: 0 },
@@ -311,7 +450,8 @@ const DraggableLessonCard = ({
       },
       onPanResponderTerminate: () => {
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
-        setIsDragging(false);
+        isDraggingRef.current = false;
+        setIsDraggingState(false);
         pan.flattenOffset();
         Animated.spring(pan, {
           toValue: { x: 0, y: 0 },
@@ -323,6 +463,8 @@ const DraggableLessonCard = ({
     })
   ).current;
 
+  const displayName = lesson.studentName || (lesson.studentId ? getStudentName(lesson.studentId) : '未知学员');
+
   return (
     <Animated.View
       style={{
@@ -331,7 +473,7 @@ const DraggableLessonCard = ({
         left: leftOffset,
         width: cardWidth - 2,
         height,
-        zIndex: isDragging ? 1000 : 10,
+        zIndex: isDraggingState ? 1000 : 10,
         transform: [{ translateY: pan.y }]
       }}
       {...panResponder.panHandlers}
@@ -341,7 +483,7 @@ const DraggableLessonCard = ({
           styles.lessonCard,
           { top: 0, left: 0, width: '100%', height: '100%' },
           isOngoing && styles.lessonCardOngoing,
-          isDragging && styles.lessonCardDragging
+          isDraggingState && styles.lessonCardDragging
         ]}
       >
         <View style={[styles.lessonCardBorder, isOngoing && styles.lessonCardBorderOngoing]} />
@@ -445,9 +587,11 @@ const DraggableLessonCard = ({
 
     // 4. Render
     return columns.map(({ lesson, column, totalColumns }) => {
-      // Calculate position and height
-      const top = (Math.max(lesson.start, START_HOUR) - START_HOUR) * HOUR_HEIGHT;
-      const height = (Math.min(lesson.end, END_HOUR) - Math.max(lesson.start, START_HOUR)) * HOUR_HEIGHT;
+      // Calculate position and height using non-linear mapping
+      const startRenderTime = Math.max(lesson.start, START_HOUR);
+      const endRenderTime = Math.min(lesson.end, END_HOUR);
+      const top = getTimeY(startRenderTime);
+      const height = Math.max(0, Math.max(getTimeY(endRenderTime) - top, 0));
       
       // Calculate width and left offset for overlapping
       const availableWidth = width - TIME_COLUMN_WIDTH - 32; // 32 is left+right padding/margins
@@ -471,6 +615,8 @@ const DraggableLessonCard = ({
           updateLessonPlan={updateLessonPlan}
           scrollViewRef={scrollViewRef}
           totalColumns={totalColumns}
+          getTimeY={getTimeY}
+          getYTime={getYTime}
         />
       );
     });
@@ -481,7 +627,11 @@ const DraggableLessonCard = ({
     if (selectedDate !== todayStr) return null;
     if (currentTime < START_HOUR || currentTime > END_HOUR) return null;
 
-    const top = (currentTime - START_HOUR) * HOUR_HEIGHT;
+    // 不在折叠区渲染时间线
+    if (!isMorningExpanded && currentTime < CORE_START_HOUR) return null;
+    if (!isEveningExpanded && currentTime > CORE_END_HOUR) return null;
+
+    const top = getTimeY(currentTime);
 
     return (
       <View style={[styles.currentTimeLineContainer, { top }]}>
@@ -500,7 +650,7 @@ const DraggableLessonCard = ({
       <ScrollView 
         ref={scrollViewRef}
         style={styles.timelineContainer}
-        contentContainerStyle={{ height: (END_HOUR - START_HOUR) * HOUR_HEIGHT + 40 }}
+        contentContainerStyle={{ height: getTimeY(isEveningExpanded ? END_HOUR : CORE_END_HOUR) + (isEveningExpanded ? 0 : COLLAPSED_HEIGHT) + 40 }}
         showsVerticalScrollIndicator={false}
       >
         {renderGridLines()}
@@ -553,6 +703,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#7F8C8D',
     marginBottom: 6,
+  },
+  tabDayNameSelected: {
+    color: '#3498DB',
+    fontWeight: 'bold',
   },
   tabDateCircle: {
     width: 32,
@@ -748,5 +902,24 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 2,
     backgroundColor: '#E74C3C',
+  },
+  collapsedBtn: {
+    position: 'absolute',
+    left: TIME_COLUMN_WIDTH,
+    right: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E8EB',
+    borderStyle: 'dashed',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
+  },
+  collapsedBtnText: {
+    color: '#7F8C8D',
+    fontSize: 13,
+    fontWeight: '500',
   }
 });
