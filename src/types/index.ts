@@ -63,10 +63,12 @@ export interface StudentProfile {
 
 export interface LessonPlan {
   id: string;
-  studentId: string;
+  studentId?: string; // 改为可选，因为允许不建立档案
+  studentName?: string; // 当没有关联学员档案时，直接显示的名字
   date: string;
   startTime?: string; // 用于日程表视图 (如 "14:00")
   endTime?: string;   // 用于日程表视图 (如 "15:30")
+  location?: string;  // 学员打球地址
   focusSkillIds: string[];
   selectedDrillIds: string[];
   coachNotes: string;

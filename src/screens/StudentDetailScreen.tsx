@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, FlatList } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ArrowLeft, User, CheckSquare, Square, AlertCircle, PlusCircle, Calendar, Map as MapIcon, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, User, CheckSquare, Square, AlertCircle, PlusCircle, Calendar, Map as MapIcon, ChevronRight, MapPin } from 'lucide-react-native';
 
 import { useCoachStore } from '../store/coachStore';
 import { CoachStackParamList } from '../navigation/types';
@@ -23,6 +23,9 @@ export default function StudentDetailScreen() {
 
   const [activeTab, setActiveTab] = useState<'assessment' | 'lessons' | 'blueprint'>('assessment');
   const [selectedLevelId, setSelectedLevelId] = useState(student?.currentLevelId || "1.0");
+
+  // 获取最近使用过的一个地址
+  const recentLocation = studentLessons.find(lp => lp.location && lp.location.trim().length > 0)?.location;
 
   if (!student) {
     return (
@@ -169,8 +172,16 @@ export default function StudentDetailScreen() {
                 onPress={() => navigation.navigate('LessonPlanEdit', { studentId, lessonPlanId: item.id })}
               >
                 <View style={styles.lessonHeader}>
-                  <Calendar color="#3498DB" size={18} style={{ marginRight: 8 }} />
-                  <Text style={styles.lessonDate}>{item.date}</Text>
+                  <View style={styles.lessonDateRow}>
+                    <Calendar color="#3498DB" size={18} style={{ marginRight: 8 }} />
+                    <Text style={styles.lessonDate}>{item.date}</Text>
+                  </View>
+                  {item.location && (
+                    <View style={styles.lessonLocationRow}>
+                      <MapPin color="#7F8C8D" size={12} style={{ marginRight: 4 }} />
+                      <Text style={styles.lessonLocationText} numberOfLines={1}>{item.location}</Text>
+                    </View>
+                  )}
                 </View>
                 
                 {item.focusSkillIds.length > 0 && (
@@ -256,6 +267,12 @@ export default function StudentDetailScreen() {
           <User color="#FFFFFF" size={32} />
         </View>
         <Text style={styles.studentNameBig}>{student.name}</Text>
+        {recentLocation && (
+          <View style={styles.recentLocationContainer}>
+            <MapPin color="#BDC3C7" size={14} style={{ marginRight: 4 }} />
+            <Text style={styles.recentLocationText}>{recentLocation}</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.segmentControl}>
@@ -344,6 +361,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  recentLocationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  recentLocationText: {
+    color: '#BDC3C7',
+    fontSize: 13,
   },
   segmentControl: {
     flexDirection: 'row',
@@ -492,12 +522,28 @@ const styles = StyleSheet.create({
   lessonHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  lessonDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   lessonDate: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#2C3E50',
+  },
+  lessonLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginLeft: 12,
+  },
+  lessonLocationText: {
+    fontSize: 12,
+    color: '#7F8C8D',
   },
   lessonSkills: {
     fontSize: 14,

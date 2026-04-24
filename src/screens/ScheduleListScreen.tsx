@@ -233,6 +233,8 @@ const DraggableLessonCard = ({
   const dragStartY = useRef(0);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
+  const displayName = lesson.studentName || (lesson.studentId ? getStudentName(lesson.studentId) : '未知学员');
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -353,7 +355,7 @@ const DraggableLessonCard = ({
           <View style={styles.lessonStudentRow}>
             <User size={12} color={isOngoing ? '#FFFFFF' : '#2C3E50'} />
             <Text style={[styles.lessonStudentName, isOngoing && styles.textOngoing]} numberOfLines={1}>
-              {getStudentName(lesson.studentId)}
+              {displayName}
             </Text>
           </View>
           

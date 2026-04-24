@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -16,18 +16,30 @@ export default function LessonPlanEditScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { studentId, lessonPlanId, initialDate, initialStartTime, initialEndTime } = route.params;
 
-  const { students, lessonPlans, addLessonPlan, updateLessonPlan, deleteLessonPlan } = useCoachStore();
+  const { students, lessonPlans, addLessonPlan, updateLessonPlan, deleteLessonPlan, addStudent } = useCoachStore();
   const existingPlan = lessonPlans.find(lp => lp.id === lessonPlanId);
 
   const [selectedStudentId, setSelectedStudentId] = useState<string>(studentId || existingPlan?.studentId || '');
+  const [customStudentName, setCustomStudentName] = useState<string>(existingPlan?.studentName || '');
   const [date, setDate] = useState(existingPlan?.date || initialDate || new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState(existingPlan?.startTime || initialStartTime || '14:00');
   const [endTime, setEndTime] = useState(existingPlan?.endTime || initialEndTime || '15:30');
+  const [location, setLocation] = useState(existingPlan?.location || '');
   const [focusSkillIds, setFocusSkillIds] = useState<string[]>(existingPlan?.focusSkillIds || []);
   const [selectedDrillIds, setSelectedDrillIds] = useState<string[]>(existingPlan?.selectedDrillIds || []);
   const [coachNotes, setCoachNotes] = useState(existingPlan?.coachNotes || '');
 
   const student = students.find(s => s.id === selectedStudentId);
+
+  // 提取该学员过去打过球的历史地址
+  const historicalLocations = useMemo(() => {
+    if (!selectedStudentId) return [];
+    const locations = lessonPlans
+      .filter(lp => lp.studentId === selectedStudentId && lp.location && lp.location.trim().length > 0)
+      .map(lp => lp.location as string);
+    // 去重并取最近的几个
+    return Array.from(new Set(locations));
+  }, [selectedStudentId, lessonPlans]);
 
   // Automatically suggest drills based on student's pain points in the selected skills
   useEffect(() => {
@@ -51,8 +63,8 @@ export default function LessonPlanEditScreen() {
   }, [focusSkillIds, student]);
 
   const handleSave = () => {
-    if (!selectedStudentId) {
-      Alert.alert("错误", "请选择学员");
+    if (!selectedStudentId && !customStudentName.trim()) {
+      Alert.alert("错误", "请选择学员或输入学员名字");
       return;
     }
     if (!date.trim()) {
@@ -60,28 +72,72 @@ export default function LessonPlanEditScreen() {
       return;
     }
 
-    if (existingPlan) {
-      updateLessonPlan(existingPlan.id, {
-        studentId: selectedStudentId,
-        date,
-        startTime,
-        endTime,
-        focusSkillIds,
-        selectedDrillIds,
-        coachNotes
-      });
+    const savePlan = (finalStudentId?: string, finalStudentName?: string) => {
+      if (existingPlan) {
+        updateLessonPlan(existingPlan.id, {
+          studentId: finalStudentId,
+          studentName: finalStudentName,
+          date,
+          startTime,
+          endTime,
+          location,
+          focusSkillIds,
+          selectedDrillIds,
+          coachNotes
+        });
+      } else {
+        addLessonPlan({
+          studentId: finalStudentId,
+          studentName: finalStudentName,
+          date,
+          startTime,
+          endTime,
+          location,
+          focusSkillIds,
+          selectedDrillIds,
+          coachNotes
+        });
+      }
+      navigation.goBack();
+    };
+
+    // 如果用户输入了自定义名字且没有选择现有学员
+    if (!selectedStudentId && customStudentName.trim()) {
+      const name = customStudentName.trim();
+      Alert.alert(
+        "建立档案",
+        `是否要为 "${name}" 建立学员档案？`,
+        [
+          { 
+            text: "暂不建立", 
+            style: "cancel",
+            onPress: () => savePlan(undefined, name) 
+          },
+          { 
+            text: "建立档案", 
+            onPress: () => {
+              // Create new student
+              const newStudentId = Math.random().toString(36).substr(2, 9);
+              addStudent({
+                id: newStudentId,
+                name: name,
+                level: '初级 (2.0-2.5)',
+                joinDate: new Date().toISOString().split('T')[0],
+                avatar: 'https://images.unsplash.com/photo-1554068865-24cecd4e34f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+                assessments: {}
+              });
+              // 传递新创建的 studentId 和 studentName，确保在任何情况下都能正确显示名称
+              savePlan(newStudentId, name);
+            }
+          }
+        ]
+      );
     } else {
-      addLessonPlan({
-        studentId: selectedStudentId,
-        date,
-        startTime,
-        endTime,
-        focusSkillIds,
-        selectedDrillIds,
-        coachNotes
-      });
+      // 现有学员排课，可以安全地不传 studentName（由 studentId 去关联）
+      // 也可以为了统一都传一个，这里为了兼容现有逻辑不作改动
+      const existingStudent = students.find(s => s.id === selectedStudentId);
+      savePlan(selectedStudentId, existingStudent?.name);
     }
-    navigation.goBack();
   };
 
   const handleDelete = () => {
@@ -136,7 +192,10 @@ export default function LessonPlanEditScreen() {
                   styles.studentChip,
                   selectedStudentId === s.id && styles.studentChipActive
                 ]}
-                onPress={() => setSelectedStudentId(s.id)}
+                onPress={() => {
+                  setSelectedStudentId(s.id);
+                  setCustomStudentName(''); // 清空自定义输入
+                }}
               >
                 <Text style={[
                   styles.studentChipText,
@@ -147,6 +206,15 @@ export default function LessonPlanEditScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
+          
+          {!selectedStudentId && (
+            <TextInput
+              style={[styles.input, { marginBottom: 16 }]}
+              value={customStudentName}
+              onChangeText={setCustomStudentName}
+              placeholder="输入未建档学员姓名..."
+            />
+          )}
           
           <Text style={styles.label}>日期 (YYYY-MM-DD)</Text>
           <TextInput
@@ -177,6 +245,35 @@ export default function LessonPlanEditScreen() {
               />
             </View>
           </View>
+
+          <Text style={[styles.label, { marginTop: 8 }]}>训练场地</Text>
+          {historicalLocations.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.locationScroll}>
+              {historicalLocations.map(loc => (
+                <TouchableOpacity
+                  key={loc}
+                  style={[
+                    styles.locationChip,
+                    location === loc && styles.locationChipActive
+                  ]}
+                  onPress={() => setLocation(loc)}
+                >
+                  <Text style={[
+                    styles.locationChipText,
+                    location === loc && styles.locationChipTextActive
+                  ]}>
+                    {loc}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+          <TextInput
+            style={styles.input}
+            value={location}
+            onChangeText={setLocation}
+            placeholder="输入打球地址（如：朝阳公园网球场）"
+          />
         </View>
 
         <View style={styles.card}>
@@ -336,6 +433,31 @@ const styles = StyleSheet.create({
   },
   studentChipTextActive: {
     color: '#3498DB',
+  },
+  locationScroll: {
+    marginBottom: 12,
+  },
+  locationChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#F5F7FA',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  locationChipActive: {
+    backgroundColor: '#E8F4F8',
+    borderColor: '#3498DB',
+  },
+  locationChipText: {
+    fontSize: 13,
+    color: '#7F8C8D',
+    fontWeight: '500',
+  },
+  locationChipTextActive: {
+    color: '#3498DB',
+    fontWeight: 'bold',
   },
   sectionTitle: {
     fontSize: 18,
