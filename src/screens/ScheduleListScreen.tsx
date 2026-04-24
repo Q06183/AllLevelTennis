@@ -35,8 +35,8 @@ const formatTime = (timeNum: number): string => {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 };
 
-// 获取本周所有日期
-const getWeekDays = () => {
+// 获取从本周一开心往后一个月的日期（共 28 天 / 4周）
+const getMonthDays = () => {
   const today = new Date();
   const dayOfWeek = today.getDay(); // 0 is Sunday, 1 is Monday
   const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -44,13 +44,13 @@ const getWeekDays = () => {
   const monday = new Date(today);
   monday.setDate(today.getDate() - diffToMonday);
   
-  const week = [];
-  for (let i = 0; i < 7; i++) {
+  const days = [];
+  for (let i = 0; i < 28; i++) {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
-    week.push(date);
+    days.push(date);
   }
-  return week;
+  return days;
 };
 
 const WEEK_DAY_NAMES = ['一', '二', '三', '四', '五', '六', '日'];
@@ -200,13 +200,40 @@ export default function ScheduleListScreen() {
     return student ? student.name : '未知学员';
   };
 
-  const weekDays = useMemo(() => getWeekDays(), []);
+  const monthDays = useMemo(() => getMonthDays(), []);
+  
+  // 日期横向滚动引用
+  const dateScrollRef = useRef<ScrollView>(null);
+  
+  // 初始化时滚动到“今天”所在的屏幕位置
+  useEffect(() => {
+    // 假设每个日期卡片的宽度大约是屏幕宽度的 1/7
+    const tabWidth = width / 7;
+    // 找到今天是这 28 天中的第几天
+    const todayIndex = monthDays.findIndex(d => d.toISOString().split('T')[0] === todayStr);
+    
+    if (todayIndex !== -1 && dateScrollRef.current) {
+      // 算出偏移量，使其尽量居中或至少可见
+      // 这里减去 3 是为了把今天放在屏幕大概中间位置（屏幕能显示7个）
+      const scrollX = Math.max(0, (todayIndex - 3) * tabWidth);
+      // 延迟一点滚动，确保组件已经挂载
+      setTimeout(() => {
+        dateScrollRef.current?.scrollTo({ x: scrollX, animated: false });
+      }, 100);
+    }
+  }, []);
 
   // 渲染顶部周视图 Tab
   const renderWeekTabs = () => {
     return (
       <View style={styles.weekTabsContainer}>
-        {weekDays.map((date, index) => {
+        <ScrollView 
+          ref={dateScrollRef}
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.weekTabsScrollContent}
+        >
+          {monthDays.map((date: Date, index: number) => {
           const dateStr = date.toISOString().split('T')[0];
           const isSelected = dateStr === selectedDate;
           const isToday = dateStr === todayStr;
@@ -243,6 +270,7 @@ export default function ScheduleListScreen() {
             </TouchableOpacity>
           );
         })}
+        </ScrollView>
       </View>
     );
   };
@@ -677,11 +705,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   weekTabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
     backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#ECF0F1',
     shadowColor: '#000',
@@ -690,6 +714,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     zIndex: 10,
+  },
+  weekTabsScrollContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
   tabItem: {
     alignItems: 'center',

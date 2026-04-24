@@ -121,7 +121,7 @@ export default function LessonPlanEditScreen() {
               addStudent({
                 id: newStudentId,
                 name: name,
-                level: '初级 (2.0-2.5)',
+                currentLevelId: '1.0',
                 joinDate: new Date().toISOString().split('T')[0],
                 avatar: 'https://images.unsplash.com/photo-1554068865-24cecd4e34f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
                 assessments: {}

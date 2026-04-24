@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { UserPlus, ChevronRight, Search } from 'lucide-react-native';
@@ -14,34 +14,55 @@ export default function StudentListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { students, addStudent } = useCoachStore();
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // 新增学员弹窗状态
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [newStudentName, setNewStudentName] = useState('');
 
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddStudent = () => {
-    Alert.prompt(
-      "新增学员",
-      "请输入学员姓名",
-      [
-        {
-          text: "取消",
-          style: "cancel"
-        },
-        {
-          text: "确定",
-          onPress: (name?: string) => {
-            if (name && name.trim()) {
-              addStudent({
-                name: name.trim(),
-                currentLevelId: "1.0", // default level
-              });
+    if (Platform.OS === 'ios') {
+      Alert.prompt(
+        "新增学员",
+        "请输入学员姓名",
+        [
+          {
+            text: "取消",
+            style: "cancel"
+          },
+          {
+            text: "确定",
+            onPress: (name?: string) => {
+              if (name && name.trim()) {
+                addStudent({
+                  name: name.trim(),
+                  currentLevelId: "1.0", // default level
+                });
+              }
             }
           }
-        }
-      ],
-      "plain-text"
-    );
+        ],
+        "plain-text"
+      );
+    } else {
+      // 安卓使用自定义弹窗
+      setNewStudentName('');
+      setIsAddModalVisible(true);
+    }
+  };
+
+  const submitNewStudent = () => {
+    if (newStudentName.trim()) {
+      addStudent({
+        name: newStudentName.trim(),
+        currentLevelId: "1.0",
+      });
+      setIsAddModalVisible(false);
+      setNewStudentName('');
+    }
   };
 
   const renderStudent = ({ item }: { item: typeof students[0] }) => {
@@ -100,6 +121,48 @@ export default function StudentListScreen() {
           </View>
         }
       />
+
+      <Modal
+        visible={isAddModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsAddModalVisible(false)}
+      >
+        <KeyboardAvoidingView 
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>新增学员</Text>
+            <Text style={styles.modalMessage}>请输入学员姓名</Text>
+            
+            <TextInput
+              style={styles.modalInput}
+              placeholder="例如: 张三"
+              value={newStudentName}
+              onChangeText={setNewStudentName}
+              autoFocus
+            />
+            
+            <View style={styles.modalActions}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.modalCancelButton]} 
+                onPress={() => setIsAddModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>取消</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.modalSubmitButton, !newStudentName.trim() && styles.modalSubmitButtonDisabled]} 
+                onPress={submitNewStudent}
+                disabled={!newStudentName.trim()}
+              >
+                <Text style={styles.modalSubmitText}>确定</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -212,5 +275,72 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#95A5A6',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    marginBottom: 16,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#BDC3C7',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: '#2C3E50',
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  modalButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginLeft: 12,
+  },
+  modalCancelButton: {
+    backgroundColor: 'transparent',
+  },
+  modalCancelText: {
+    color: '#7F8C8D',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  modalSubmitButton: {
+    backgroundColor: '#3498DB',
+  },
+  modalSubmitButtonDisabled: {
+    backgroundColor: '#BDC3C7',
+  },
+  modalSubmitText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   }
 });

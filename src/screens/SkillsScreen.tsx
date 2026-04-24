@@ -46,7 +46,7 @@ export default function SkillsScreen() {
             <Text style={styles.notesManageText}>全部备忘</Text>
           </TouchableOpacity>
           <Text style={styles.header}>网球技能库</Text>
-          <View style={{ width: 80 }} /> {/* Spacer to balance the header */}
+          <View style={{ width: 80 }} />
         </View>
         
         <View style={styles.filterWrapper}>
