@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { SwipeListView } from 'react-native-swipe-list-view';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { UserPlus, ChevronRight, Search } from 'lucide-react-native';
+import { UserPlus, ChevronRight, Search, Trash2 } from 'lucide-react-native';
 
 import { useCoachStore } from '../store/coachStore';
 import { CoachStackParamList } from '../navigation/types';
@@ -12,7 +13,7 @@ type NavigationProp = NativeStackNavigationProp<CoachStackParamList, 'StudentLis
 
 export default function StudentListScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { students, addStudent } = useCoachStore();
+  const { students, addStudent, deleteStudent } = useCoachStore();
   const [searchQuery, setSearchQuery] = useState('');
   
   // 新增学员弹窗状态
@@ -72,6 +73,7 @@ export default function StudentListScreen() {
       <TouchableOpacity 
         style={styles.studentCard}
         onPress={() => navigation.navigate('StudentDetail', { studentId: item.id })}
+        activeOpacity={1}
       >
         <View style={styles.avatarPlaceholder}>
           <Text style={styles.avatarText}>{item.name.charAt(0).toUpperCase()}</Text>
@@ -87,6 +89,18 @@ export default function StudentListScreen() {
       </TouchableOpacity>
     );
   };
+
+  const renderHiddenItem = ({ item }: { item: typeof students[0] }) => (
+    <View style={styles.rowBack}>
+      <TouchableOpacity
+        style={[styles.backRightBtn, styles.backRightBtnRight]}
+        onPress={() => deleteStudent(item.id)}
+      >
+        <Trash2 color="#FFFFFF" size={24} />
+        <Text style={styles.backTextWhite}>删除</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -108,10 +122,13 @@ export default function StudentListScreen() {
         />
       </View>
 
-      <FlatList
+      <SwipeListView
         data={filteredStudents}
         keyExtractor={item => item.id}
         renderItem={renderStudent}
+        renderHiddenItem={renderHiddenItem}
+        rightOpenValue={-75}
+        disableRightSwipe
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -342,5 +359,35 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  rowBack: {
+    alignItems: 'center',
+    backgroundColor: '#E74C3C',
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    borderRadius: 12,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  backRightBtn: {
+    alignItems: 'center',
+    bottom: 0,
+    justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    width: 75,
+  },
+  backRightBtnRight: {
+    backgroundColor: '#E74C3C',
+    right: 0,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  backTextWhite: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginTop: 4,
   }
 });

@@ -252,7 +252,7 @@ export default function ScheduleListScreen() {
                 isSelected && styles.tabDayNameSelected,
                 isToday && !isSelected && styles.tabTextToday
               ]}>
-                周{WEEK_DAY_NAMES[index]}
+                周{WEEK_DAY_NAMES[index % 7]}
               </Text>
               <View style={[
                 styles.tabDateCircle,

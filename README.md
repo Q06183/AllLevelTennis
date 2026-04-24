@@ -18,7 +18,7 @@ source ~/.zshrc
 ### 核心步骤
 
 **1. （可选）重新生成/同步原生 Android 项目**
-如果你修改了 `app.json`（如包名、图标配置）或者安装了新的原生依赖包，需要先执行：
+如果你修改了 `app.json`（如包名、图标配置）或者安装了新的原生依赖包，需要先执行以下通用命令生成 Android 工程：
 ```bash
 npx expo prebuild --clean --platform android
 ```
@@ -50,12 +50,18 @@ open app/build/outputs/apk/debug/
 
 ### 常见问题与进阶操作
 
-*   **打 Release (正式版) 包**：
-    如果你需要构建运行更快、去除了调试信息的版本，可以执行：
+*   **打 Release (正式版) 包（用于真机独立离线运行）**：
+    如果你需要构建真正可以在手机上脱离电脑离线运行的版本，请按以下顺序执行：
     ```bash
+    cd android
     ./gradlew assembleRelease
     ```
-    生成的 APK 路径会在：`app/build/outputs/apk/release/app-release.apk`。（注：正式包需要配置签名文件才能在手机上正常安装使用）。
+    当终端输出 `BUILD SUCCESSFUL` 时，生成的正式版 APK 即可使用。
+    你可以执行以下命令直接在访达中打开生成的文件夹：
+    ```bash
+    open app/build/outputs/apk/release/
+    ```
+    *(注：正式包通常需要配置签名文件才能在手机上正常安装使用。)*
 
 *   **直接安装到手机/模拟器**：
     如果手机已通过数据线连接到电脑，或安卓模拟器已打开，只需在项目根目录执行：

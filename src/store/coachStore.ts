@@ -18,9 +18,9 @@ interface CoachState {
   
   // Lesson Plan Actions
   addLessonPlan: (plan: Omit<LessonPlan, 'id'>) => void;
-  updateLessonPlan: (id: string, updates: Partial<LessonPlan>) => void;
+  updateLessonPlan: (id: string, plan: Partial<LessonPlan>) => void;
   deleteLessonPlan: (id: string) => void;
-
+  
   // Long Term Plan Actions
   addLongTermPlan: (plan: Omit<LongTermPlan, 'id' | 'createdAt'>) => void;
   updateLongTermPlan: (id: string, updates: Partial<LongTermPlan>) => void;
