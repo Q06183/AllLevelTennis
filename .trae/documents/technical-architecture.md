@@ -273,3 +273,12 @@ const skills = [
   - 在 `StudentDetailScreen` 增加“生成长期规划”入口。
   - `LongTermPlanEditScreen` 提供批量编辑10节课预期目标的表单。
   - 使用 `react-native-view-shot` 的 `<ViewShot>` 包裹生成的预览视图卡片，调用 `capture()` 获取本地图片 URI，最后通过 `expo-sharing` 调用系统的原生分享菜单，发送给学员。
+
+### 7.13 备忘录功能恢复与增强 (Notes Recovery & Enhancement)
+- **技术实现**：
+  - **数据模型并行**：在 `types/index.ts` 中恢复 `Note` 模型，与 `SessionRecord` 并行。在 Zustand (`store/index.ts`) 中恢复 `notes` 数组及其增删方法。为了防止 AsyncStorage 加载状态不确定的崩溃，读取时统一添加默认值保护（如 `(notes || []).filter(...)`）。
+  - **UI 与入口**：
+    - **技能详情页 (`SkillDetailScreen`)**：恢复底部的笔记输入框与历史列表，复用 `KeyboardAvoidingView` 的 `position` 避让机制保证输入体验。
+    - **全局管理入口 (`SkillsScreen`)**：在屏幕左上角添加快捷按钮，跳转至独立的 `NotesScreen` 管理所有备忘录。
+    - **计数角标**：在 `SkillsScreen` 渲染技能卡片时，实时计算每个技能对应的备忘录数量，若大于 0，则在卡片右上角显示带有蓝色书本图标的数字角标。
+  - **渲染防崩机制**：在 React Native 的 JSX 条件渲染中，严格使用三元运算符 `{count > 0 ? <View> : null}` 替代 `{count > 0 && <View>}`，防止因值为 `0` 时触发 `Text strings must be rendered within a <Text> component.` 的红屏错误。

@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SessionRecord, SkillCompletion } from '../types';
+import { SessionRecord, SkillCompletion, Note } from '../types';
 
 interface AppState {
   skillCompletion: SkillCompletion;
   sessionRecords: SessionRecord[];
+  notes: Note[];
   isCoachMode: boolean;
   
   // Actions
@@ -15,6 +16,8 @@ interface AppState {
   addSessionRecord: (recordData: Omit<SessionRecord, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateSessionRecord: (id: string, recordData: Partial<Omit<SessionRecord, 'id' | 'createdAt' | 'updatedAt'>>) => void;
   deleteSessionRecord: (id: string) => void;
+  addNote: (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  deleteNote: (id: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -22,6 +25,7 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       skillCompletion: {},
       sessionRecords: [],
+      notes: [],
       isCoachMode: false,
 
       toggleCoachMode: () => set((state) => ({ isCoachMode: !state.isCoachMode })),
@@ -50,17 +54,31 @@ export const useStore = create<AppState>()(
         }));
       },
 
-      updateSessionRecord: (id, recordData) => {
-        const now = new Date().toISOString();
-        set((state) => ({
-          sessionRecords: state.sessionRecords.map((record) =>
-            record.id === id ? { ...record, ...recordData, updatedAt: now } : record
-          ),
-        }));
-      },
+      updateSessionRecord: (id, recordData) => set((state) => ({
+        sessionRecords: state.sessionRecords.map((record) =>
+          record.id === id ? { ...record, ...recordData, updatedAt: new Date().toISOString() } : record
+        ),
+      })),
 
       deleteSessionRecord: (id) => set((state) => ({
         sessionRecords: state.sessionRecords.filter((record) => record.id !== id),
+      })),
+
+      addNote: (noteData) => {
+        const now = new Date().toISOString();
+        const newNote: Note = {
+          ...noteData,
+          id: Math.random().toString(36).substring(2, 9),
+          createdAt: now,
+          updatedAt: now,
+        };
+        set((state) => ({
+          notes: [newNote, ...(state.notes || [])],
+        }));
+      },
+
+      deleteNote: (id) => set((state) => ({
+        notes: (state.notes || []).filter((note) => note.id !== id),
       })),
     }),
     {

@@ -9,6 +9,7 @@ import { useStore } from '../store';
 import LevelStandardScreen from '../screens/LevelStandardScreen';
 import SkillsScreen from '../screens/SkillsScreen';
 import SkillDetailScreen from '../screens/SkillDetailScreen';
+import NotesScreen from '../screens/NotesScreen';
 import TrainingRecordListScreen from '../screens/TrainingRecordListScreen';
 import TrainingRecordEditScreen from '../screens/TrainingRecordEditScreen';
 import ScheduleListScreen from '../screens/ScheduleListScreen';
@@ -37,6 +38,7 @@ function SkillsStackNavigator() {
     <SkillsStack.Navigator screenOptions={{ headerShown: false }}>
       <SkillsStack.Screen name="SkillsList" component={SkillsScreen} />
       <SkillsStack.Screen name="SkillDetail" component={SkillDetailScreen} />
+      <SkillsStack.Screen name="NotesList" component={NotesScreen} />
     </SkillsStack.Navigator>
   );
 }

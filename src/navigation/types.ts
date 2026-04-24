@@ -16,6 +16,7 @@ export type LevelStackParamList = {
 export type SkillsStackParamList = {
   SkillsList: undefined;
   SkillDetail: { skillId: string };
+  NotesList: undefined;
 };
 
 export type TrainingRecordStackParamList = {

@@ -31,6 +31,14 @@ export interface Skill {
   painPoints?: PainPoint[]; // 常见痛点分析与推荐练习
 }
 
+export interface Note {
+  id: string;       // 笔记ID
+  skillId: string;  // 关联的技能ID（为空时表示通用笔记）
+  content: string;  // 笔记内容
+  createdAt: string; // 创建时间（包含日期和时间）
+  updatedAt: string; // 更新时间（包含日期和时间）
+}
+
 export interface SessionRecord {
   id: string;
   date: string;      // 打卡日期

@@ -65,15 +65,23 @@ export default function SkillDetailScreen() {
   const headerHeight = useHeaderHeight();
   
   const skill = skills.find(s => s.id === skillId);
-  const { skillCompletion, toggleSkillCompletion, sessionRecords } = useStore();
+  const { skillCompletion, toggleSkillCompletion, sessionRecords, notes, addNote } = useStore();
   const isCompleted = !!skillCompletion[skillId];
   
   const [isImageViewVisible, setIsImageViewVisible] = useState(false);
   const [viewerKey, setViewerKey] = useState(0);
+  const [newNote, setNewNote] = useState('');
 
   const openImageViewer = () => {
     setViewerKey(prev => prev + 1);
     setIsImageViewVisible(true);
+  };
+
+  const handleAddNote = () => {
+    if (newNote.trim()) {
+      addNote({ skillId, content: newNote.trim() });
+      setNewNote('');
+    }
   };
 
   if (!skill) {
@@ -191,6 +199,37 @@ export default function SkillDetailScreen() {
             </View>
           )}
         </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>添加技能备忘录</Text>
+          <TextInput
+            style={styles.input}
+            multiline
+            placeholder="记录你的学习心得和技巧..."
+            value={newNote}
+            onChangeText={setNewNote}
+          />
+          <TouchableOpacity 
+            style={styles.addButton} 
+            onPress={handleAddNote}
+          >
+            <Text style={styles.addButtonText}>保存备忘录</Text>
+          </TouchableOpacity>
+        </View>
+
+        {(notes || []).filter(n => n.skillId === skillId).length > 0 && (
+          <View style={styles.notesSection}>
+            <Text style={styles.sectionTitle}>历史备忘录 ({(notes || []).filter(n => n.skillId === skillId).length})</Text>
+            {(notes || []).filter(n => n.skillId === skillId).map(note => (
+              <View key={note.id} style={styles.noteCard}>
+                <Text style={styles.noteDate}>
+                  {new Date(note.createdAt).toLocaleString()}
+                </Text>
+                <Text style={styles.noteContent}>{note.content}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* 训练打卡记录 */}
         {skillRecords.length > 0 && (

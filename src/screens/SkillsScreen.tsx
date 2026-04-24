@@ -2,9 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Star } from 'lucide-react-native';
+import { Star, BookOpen } from 'lucide-react-native';
 
 import { skills } from '../data/mockData';
+import { useStore } from '../store';
 import { SkillsStackParamList } from '../navigation/types';
 
 type NavigationProp = NativeStackNavigationProp<SkillsStackParamList, 'SkillsList'>;
@@ -12,6 +13,7 @@ type NavigationProp = NativeStackNavigationProp<SkillsStackParamList, 'SkillsLis
 export default function SkillsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [selectedCategory, setSelectedCategory] = useState<string>('全部');
+  const { notes } = useStore();
 
   const categories = useMemo(() => {
     const cats = Array.from(new Set(skills.map(s => s.category)));
@@ -35,7 +37,17 @@ export default function SkillsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.header}>网球技能库</Text>
+        <View style={styles.headerTop}>
+          <TouchableOpacity 
+            style={styles.notesManageButton} 
+            onPress={() => navigation.navigate('NotesList')}
+          >
+            <BookOpen color="#3498DB" size={20} />
+            <Text style={styles.notesManageText}>全部备忘</Text>
+          </TouchableOpacity>
+          <Text style={styles.header}>网球技能库</Text>
+          <View style={{ width: 80 }} /> {/* Spacer to balance the header */}
+        </View>
         
         <View style={styles.filterWrapper}>
           <ScrollView 
@@ -70,27 +82,39 @@ export default function SkillsScreen() {
             <Text style={styles.categoryTitle}>{category}</Text>
             
             <View style={styles.skillsGrid}>
-              {categorySkills.map((skill) => (
-                <TouchableOpacity 
-                  key={skill.id} 
-                  style={styles.skillCard}
-                  onPress={() => navigation.navigate('SkillDetail', { skillId: skill.id })}
-                >
-                  <Text style={styles.skillName}>{skill.name}</Text>
-                  <Text style={styles.skillDesc} numberOfLines={2}>{skill.description}</Text>
-                  
-                  <View style={styles.difficultyContainer}>
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        size={14} 
-                        color={i < skill.difficulty ? '#F1C40F' : '#ECF0F1'} 
-                        fill={i < skill.difficulty ? '#F1C40F' : 'transparent'} 
-                      />
-                    ))}
-                  </View>
-                </TouchableOpacity>
-              ))}
+              {categorySkills.map((skill) => {
+                const skillNotesCount = (notes || []).filter(n => n.skillId === skill.id).length;
+                
+                return (
+                  <TouchableOpacity 
+                    key={skill.id} 
+                    style={styles.skillCard}
+                    onPress={() => navigation.navigate('SkillDetail', { skillId: skill.id })}
+                  >
+                    <View style={styles.skillCardHeader}>
+                      <Text style={styles.skillName}>{skill.name}</Text>
+                      {skillNotesCount > 0 ? (
+                        <View style={styles.noteBadge}>
+                          <BookOpen color="#3498DB" size={12} />
+                          <Text style={styles.noteBadgeText}>{skillNotesCount}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                    <Text style={styles.skillDesc} numberOfLines={2}>{skill.description}</Text>
+                    
+                    <View style={styles.difficultyContainer}>
+                      {[...Array(5)].map((_, i) => (
+                        <Star 
+                          key={i} 
+                          size={14} 
+                          color={i < skill.difficulty ? '#F1C40F' : '#ECF0F1'} 
+                          fill={i < skill.difficulty ? '#F1C40F' : 'transparent'} 
+                        />
+                      ))}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         ))}
@@ -105,17 +129,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA',
   },
   headerContainer: {
-    paddingTop: 16,
-    backgroundColor: '#F5F7FA',
-    zIndex: 1,
+    paddingTop: 50, // for SafeArea manually if not handled
+    backgroundColor: '#FFFFFF',
+    zIndex: 10,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
   header: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#2C3E50',
-    marginBottom: 16,
-    textAlign: 'center',
-    paddingHorizontal: 16,
+  },
+  notesManageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECF0F1',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  notesManageText: {
+    marginLeft: 4,
+    fontSize: 13,
+    color: '#3498DB',
+    fontWeight: 'bold',
   },
   filterWrapper: {
     marginBottom: 8,
@@ -175,18 +217,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 12,
-    marginBottom: 12,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  skillCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
   },
   skillName: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#2C3E50',
-    marginBottom: 6,
+    flex: 1,
+  },
+  noteBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECF0F1',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 8,
+  },
+  noteBadgeText: {
+    fontSize: 10,
+    color: '#3498DB',
+    marginLeft: 2,
+    fontWeight: 'bold',
   },
   skillDesc: {
     fontSize: 12,
