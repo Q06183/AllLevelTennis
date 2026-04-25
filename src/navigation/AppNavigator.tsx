@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { BookOpen, CheckSquare, Target, Users, Calendar, Settings } from 'lucide-react-native';
-import { TouchableOpacity, View, Text } from 'react-native';
+import { BookOpen, CheckSquare, Target, Users, Calendar, ChevronDown } from 'lucide-react-native';
+import { TouchableOpacity, View, Text, Modal, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
 import { useStore } from '../store';
 import LevelStandardScreen from '../screens/LevelStandardScreen';
@@ -65,6 +65,12 @@ function ScheduleStackNavigator() {
 
 export default function AppNavigator() {
   const { isCoachMode, toggleCoachMode } = useStore();
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const handleSwitchMode = () => {
+    toggleCoachMode();
+    setMenuVisible(false);
+  };
 
   return (
     <NavigationContainer>
@@ -88,15 +94,46 @@ export default function AppNavigator() {
           headerStyle: { backgroundColor: '#2C3E50' },
           headerTintColor: '#fff',
           headerRight: () => (
-            <TouchableOpacity 
-              onPress={toggleCoachMode}
-              style={{ marginRight: 16, flexDirection: 'row', alignItems: 'center' }}
-            >
-              <Settings color="#fff" size={20} style={{ marginRight: 4 }} />
-              <Text style={{ color: '#fff', fontSize: 12 }}>
-                {isCoachMode ? '切换学生' : '切换教练'}
-              </Text>
-            </TouchableOpacity>
+            <View>
+              <TouchableOpacity 
+                onPress={() => setMenuVisible(true)}
+                style={styles.headerRightBtn}
+              >
+                <Text style={styles.headerRightText}>
+                  {isCoachMode ? '教练模式' : '学生模式'}
+                </Text>
+                <ChevronDown color="#fff" size={16} />
+              </TouchableOpacity>
+
+              <Modal
+                transparent={true}
+                visible={menuVisible}
+                animationType="fade"
+                onRequestClose={() => setMenuVisible(false)}
+              >
+                <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+                  <View style={styles.modalOverlay}>
+                    <TouchableWithoutFeedback>
+                      <View style={styles.dropdownMenu}>
+                        <TouchableOpacity 
+                          style={[styles.menuItem, !isCoachMode && styles.menuItemActive]}
+                          onPress={() => !isCoachMode ? setMenuVisible(false) : handleSwitchMode()}
+                        >
+                          <Text style={[styles.menuItemText, !isCoachMode && styles.menuItemTextActive]}>学生模式</Text>
+                        </TouchableOpacity>
+                        <View style={styles.divider} />
+                        <TouchableOpacity 
+                          style={[styles.menuItem, isCoachMode && styles.menuItemActive]}
+                          onPress={() => isCoachMode ? setMenuVisible(false) : handleSwitchMode()}
+                        >
+                          <Text style={[styles.menuItemText, isCoachMode && styles.menuItemTextActive]}>教练模式</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableWithoutFeedback>
+                  </View>
+                </TouchableWithoutFeedback>
+              </Modal>
+            </View>
           )
         })}
       >
@@ -136,3 +173,59 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  headerRightBtn: {
+    marginRight: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  headerRightText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginRight: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0)',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 90, // safe area approx + header height
+    right: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    width: 140,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  menuItemActive: {
+    backgroundColor: '#F5F7FA',
+  },
+  menuItemText: {
+    fontSize: 15,
+    color: '#34495E',
+    textAlign: 'center',
+  },
+  menuItemTextActive: {
+    color: '#3498DB',
+    fontWeight: 'bold',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#ECF0F1',
+  }
+});
