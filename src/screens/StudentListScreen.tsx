@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TouchableHighlight, TextInput
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { UserPlus, ChevronRight, Search, Trash2, Filter, X } from 'lucide-react-native';
+import { UserPlus, ChevronRight, Search, Trash2, Filter, X, ArchiveRestore } from 'lucide-react-native';
 
 import { useCoachStore } from '../store/coachStore';
 import { CoachStackParamList } from '../navigation/types';
@@ -13,8 +13,13 @@ type NavigationProp = NativeStackNavigationProp<CoachStackParamList, 'StudentLis
 
 export default function StudentListScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { students, addStudent, deleteStudent } = useCoachStore();
+  const { students, addStudent, deleteStudent, cleanupRecycleBin } = useCoachStore();
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // 在组件加载时清理过期回收站数据
+  React.useEffect(() => {
+    cleanupRecycleBin();
+  }, []);
   
   // 新增学员弹窗状态
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -29,6 +34,9 @@ export default function StudentListScreen() {
   const [filterEndDate, setFilterEndDate] = useState<string>('');
 
   const filteredStudents = students.filter(s => {
+    // 0. 排除回收站中的学员
+    if (s.deletedAt) return false;
+
     // 1. 搜索词筛选
     if (searchQuery && !s.name.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
@@ -147,11 +155,22 @@ export default function StudentListScreen() {
     );
   };
 
+  const confirmDelete = (student: typeof students[0]) => {
+    Alert.alert(
+      "删除学员",
+      `确定要删除学员 "${student.name}" 吗？\n删除后将在回收站保留 30 天。`,
+      [
+        { text: "取消", style: "cancel" },
+        { text: "删除", style: "destructive", onPress: () => deleteStudent(student.id) }
+      ]
+    );
+  };
+
   const renderHiddenItem = ({ item }: { item: typeof students[0] }) => (
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnRight]}
-        onPress={() => deleteStudent(item.id)}
+        onPress={() => confirmDelete(item)}
       >
         <Trash2 color="#FFFFFF" size={24} />
         <Text style={styles.backTextWhite}>删除</Text>
@@ -163,10 +182,18 @@ export default function StudentListScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>教练工作台</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddStudent}>
-          <UserPlus color="#FFFFFF" size={20} />
-          <Text style={styles.addButtonText}>添加</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.recycleBinButton} 
+            onPress={() => navigation.navigate('RecycleBin')}
+          >
+            <Trash2 color="#ECF0F1" size={20} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddStudent}>
+            <UserPlus color="#FFFFFF" size={20} />
+            <Text style={styles.addButtonText}>添加</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.searchRow}>
@@ -393,6 +420,16 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  recycleBinButton: {
+    padding: 8,
+    marginRight: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 8,
   },
   addButton: {
     flexDirection: 'row',

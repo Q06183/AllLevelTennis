@@ -81,10 +81,18 @@ export default function ScheduleListScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // 筛选出选中日期的所有课程
+  // 筛选出选中日期的所有课程（且排除已放入回收站的学员课程）
   const dailyLessons = useMemo(() => {
-    return lessonPlans.filter(plan => plan.date === selectedDate && plan.startTime && plan.endTime);
-  }, [lessonPlans, selectedDate]);
+    return lessonPlans.filter(plan => {
+      if (plan.date !== selectedDate || !plan.startTime || !plan.endTime) return false;
+      // 检查学员是否在回收站中
+      if (plan.studentId) {
+        const student = students.find(s => s.id === plan.studentId);
+        if (student && student.deletedAt) return false;
+      }
+      return true;
+    });
+  }, [lessonPlans, selectedDate, students]);
 
   // 当切换日期时，重置手动展开状态
   useEffect(() => {

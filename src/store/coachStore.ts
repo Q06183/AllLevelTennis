@@ -11,7 +11,10 @@ interface CoachState {
   // Student Actions
   addStudent: (student: Omit<StudentProfile, 'id' | 'assessments'>) => void;
   updateStudent: (id: string, updates: Partial<StudentProfile>) => void;
-  deleteStudent: (id: string) => void;
+  deleteStudent: (id: string) => void; // 软删除，放入回收站
+  restoreStudent: (id: string) => void; // 从回收站恢复
+  permanentlyDeleteStudent: (id: string) => void; // 彻底删除
+  cleanupRecycleBin: () => void; // 清理超过30天的回收站数据
   
   // Assessment Actions
   updateSkillAssessment: (studentId: string, skillId: string, assessment: Partial<SkillAssessment>) => void;
@@ -52,10 +55,44 @@ export const useCoachStore = create<CoachState>()(
       })),
 
       deleteStudent: (id) => set((state) => ({
+        students: state.students.map(student => 
+          student.id === id ? { ...student, deletedAt: Date.now() } : student
+        )
+      })),
+
+      restoreStudent: (id) => set((state) => ({
+        students: state.students.map(student => {
+          if (student.id === id) {
+            const { deletedAt, ...rest } = student;
+            return rest;
+          }
+          return student;
+        })
+      })),
+
+      permanentlyDeleteStudent: (id) => set((state) => ({
         students: state.students.filter(student => student.id !== id),
         lessonPlans: state.lessonPlans.filter(plan => plan.studentId !== id),
         longTermPlans: state.longTermPlans.filter(plan => plan.studentId !== id)
       })),
+
+      cleanupRecycleBin: () => set((state) => {
+        const now = Date.now();
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+        
+        // Find IDs to permanently delete (older than 30 days)
+        const idsToDelete = state.students
+          .filter(s => s.deletedAt && (now - s.deletedAt) > thirtyDaysMs)
+          .map(s => s.id);
+          
+        if (idsToDelete.length === 0) return state;
+
+        return {
+          students: state.students.filter(s => !idsToDelete.includes(s.id)),
+          lessonPlans: state.lessonPlans.filter(plan => !idsToDelete.includes(plan.studentId || '')),
+          longTermPlans: state.longTermPlans.filter(plan => !idsToDelete.includes(plan.studentId))
+        };
+      }),
 
       updateSkillAssessment: (studentId, skillId, assessmentUpdates) => set((state) => {
         return {

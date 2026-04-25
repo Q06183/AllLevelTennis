@@ -49,4 +49,5 @@ export type CoachStackParamList = {
   };
   LongTermPlanEdit: { studentId: string; planId?: string };
   SkillDetail: { skillId: string };
+  RecycleBin: undefined;
 };

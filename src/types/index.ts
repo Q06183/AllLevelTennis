@@ -67,6 +67,7 @@ export interface StudentProfile {
   currentLevelId: string;
   assessments: Record<string, SkillAssessment>; // key 为 skillId
   lastLessonDate?: string;
+  deletedAt?: number; // 放入回收站的时间戳
 }
 
 export interface LessonPlan {

@@ -46,6 +46,7 @@ graph TD
 | SkillDetail | 技能详情页面（可在任意 Tab 栈内压入并正确返回上一级） | - |
 | ScheduleList | 教练日程表视图 | - |
 | StudentList | 学员列表页面 | - |
+| RecycleBin | 回收站页面，展示软删除的学员并支持恢复与彻底删除 | - |
 | StudentDetail | 单个学员档案页面（技能评估、单节教案与长期规划） | - |
 | LessonPlanEdit| 单节教案编辑页面（选择重点技能、痛点与练习处方） | - |
 | LongTermPlanEdit| 10节课长期规划页面（包含长图截图分享功能） | - |
@@ -141,6 +142,7 @@ interface StudentProfile {
   currentLevelId: string;
   assessments: Record<string, SkillAssessment>; // key 为 skillId
   lastLessonDate?: string;
+  deletedAt?: number; // 软删除标记与进入回收站的时间戳
 }
 
 interface LessonPlan {
@@ -254,6 +256,7 @@ const skills = [
 - **功能描述**：教练可管理学员档案，评估技能痛点，并基于痛点生成包含具体 Drill 的单节课教案。
 - **技术实现**：
   - **状态管理**：新增 `useCoachStore`，利用 `persist` 中间件将 `students` 和 `lessonPlans` 持久化到 AsyncStorage。
+  - **学员回收站机制 (Soft Delete)**：在 `StudentProfile` 中新增 `deletedAt` 字段。左滑删除时调用 `deleteStudent` 记录时间戳。列表渲染、日程表筛选等均会自动过滤掉携带 `deletedAt` 的数据。在 `RecycleBinScreen` 中支持手动调用 `restoreStudent` 恢复或 `permanentlyDeleteStudent` 清除，并在 `StudentListScreen` 挂载时触发 `cleanupRecycleBin` 自动清理超 30 天的数据。
   - **学员列表与多维度筛选**：`StudentListScreen` 支持按水平（如 1.0-5.0）和上课时间（具体日期范围或未上课天数）对学员进行组合筛选。筛选面板通过 `Modal` 结合 `KeyboardAvoidingView`（嵌套在全屏 View 内以适配 iOS）实现。筛选角标实时显示过滤后的真实学员数量，并在无有效筛选条件时动态禁用“确定”按钮以防误操作。
   - **学员档案页**：采用顶部分段器切换视图。技能评估视图以列表呈现该学员当前水平的技能，教练可勾选完成或标记 `painPointIds`；头部信息区动态提取该学员最近一次有场地记录的 `location` 渲染地图图钉提示；历史教案列表同样展示该次上课的具体位置。
   - **教案编辑页**：表单界面。
