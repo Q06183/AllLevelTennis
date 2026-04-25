@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Switch, Platform, ScrollView } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowLeft, Save, Trash2, CheckSquare, Square } from 'lucide-react-native';
@@ -14,6 +16,7 @@ type NavigationProp = NativeStackNavigationProp<CoachStackParamList, 'LessonPlan
 export default function LessonPlanEditScreen() {
   const route = useRoute<RouteProps>();
   const navigation = useNavigation<NavigationProp>();
+  const headerHeight = useHeaderHeight();
   const { studentId, lessonPlanId, initialDate, initialStartTime, initialEndTime } = route.params;
 
   const { students, lessonPlans, addLessonPlan, updateLessonPlan, deleteLessonPlan, addStudent } = useCoachStore();
@@ -177,9 +180,16 @@ export default function LessonPlanEditScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>课程基本信息</Text>
+      <KeyboardAwareScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{ flexGrow: 1 }}
+        enableOnAndroid={true}
+        extraScrollHeight={Platform.OS === 'ios' ? headerHeight + 20 : 20}
+        keyboardShouldPersistTaps="handled"
+      >
+        <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>课程基本信息</Text>
           
           <Text style={styles.label}>选择学员</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.studentScroll}>
@@ -335,6 +345,7 @@ export default function LessonPlanEditScreen() {
         
         <View style={{ height: 40 }} />
       </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

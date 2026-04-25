@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TouchableHighlight, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TouchableHighlight, TextInput, Alert, Modal, Platform } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -86,34 +87,8 @@ export default function StudentListScreen() {
   };
 
   const handleAddStudent = () => {
-    if (Platform.OS === 'ios') {
-      Alert.prompt(
-        "新增学员",
-        "请输入学员姓名",
-        [
-          {
-            text: "取消",
-            style: "cancel"
-          },
-          {
-            text: "确定",
-            onPress: (name?: string) => {
-              if (name && name.trim()) {
-                addStudent({
-                  name: name.trim(),
-                  currentLevelId: "1.0", // default level
-                });
-              }
-            }
-          }
-        ],
-        "plain-text"
-      );
-    } else {
-      // 安卓使用自定义弹窗
-      setNewStudentName('');
-      setIsAddModalVisible(true);
-    }
+    setNewStudentName('');
+    setIsAddModalVisible(true);
   };
 
   const submitNewStudent = () => {
@@ -245,9 +220,11 @@ export default function StudentListScreen() {
         onRequestClose={() => setIsFilterModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView 
-            style={styles.keyboardAvoidingContainer}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          <KeyboardAwareScrollView 
+            contentContainerStyle={styles.keyboardAvoidingContainer}
+            enableOnAndroid={true}
+            extraScrollHeight={Platform.OS === 'ios' ? 20 : 20}
+            keyboardShouldPersistTaps="handled"
           >
             <View style={styles.modalContent}>
               <View style={styles.modalHeaderRow}>
@@ -350,7 +327,7 @@ export default function StudentListScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
         </View>
       </Modal>
 
@@ -362,9 +339,11 @@ export default function StudentListScreen() {
         onRequestClose={() => setIsAddModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView 
-            style={styles.keyboardAvoidingContainer}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          <KeyboardAwareScrollView 
+            contentContainerStyle={styles.keyboardAvoidingContainer}
+            enableOnAndroid={true}
+            extraScrollHeight={Platform.OS === 'ios' ? 20 : 20}
+            keyboardShouldPersistTaps="handled"
           >
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>新增学员</Text>
@@ -395,7 +374,7 @@ export default function StudentListScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
         </View>
       </Modal>
     </View>

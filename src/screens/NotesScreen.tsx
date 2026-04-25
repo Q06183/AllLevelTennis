@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Trash2, ArrowLeft } from 'lucide-react-native';
@@ -12,6 +14,7 @@ type NavigationProp = NativeStackNavigationProp<SkillsStackParamList, 'NotesList
 
 export default function NotesScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const headerHeight = useHeaderHeight();
   const { notes, addNote, deleteNote } = useStore();
   const [newNote, setNewNote] = useState('');
 
@@ -44,6 +47,13 @@ export default function NotesScreen() {
         <Text style={styles.headerTitle}>我的备忘录</Text>
         <View style={{ width: 24 }} />
       </View>
+      <KeyboardAwareScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{ flexGrow: 1 }}
+        enableOnAndroid={true}
+        extraScrollHeight={Platform.OS === 'ios' ? headerHeight + 20 : 20}
+        keyboardShouldPersistTaps="handled"
+      >
       <ScrollView 
         style={styles.container}
         keyboardShouldPersistTaps="handled"
@@ -96,6 +106,7 @@ export default function NotesScreen() {
         </View>
         <View style={{ height: 40 }} />
       </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

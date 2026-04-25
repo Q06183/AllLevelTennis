@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button, KeyboardAvoidingView, Platform, Image, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Button, Platform, Image, Modal } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { CheckSquare, Square, ArrowLeft, Star, ChevronDown, ChevronRight, AlertCircle, Dumbbell, X } from 'lucide-react-native';
@@ -96,11 +97,12 @@ export default function SkillDetailScreen() {
   const skillRecords = sessionRecords.filter(r => r.focusSkillIds.includes(skillId));
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAwareScrollView 
       style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'position' : undefined}
-      contentContainerStyle={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+      contentContainerStyle={{ flexGrow: 1 }}
+      enableOnAndroid={true}
+      extraScrollHeight={Platform.OS === 'ios' ? headerHeight + 20 : 20}
+      keyboardShouldPersistTaps="handled"
     >
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -251,7 +253,7 @@ export default function SkillDetailScreen() {
         
         <View style={{ height: 40 }} />
       </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 

@@ -240,7 +240,10 @@ const skills = [
 - **技术实现**：通过 Zustand 的 `skillCompletion` 状态存储全局的完成情况，多层级共享同一技能的完成进度。
 
 ### 7.4 键盘避让与输入体验优化
-- **技术实现**：使用 `KeyboardAvoidingView` 与 `behavior="position"`，结合 `@react-navigation/elements` 的 `useHeaderHeight()` 动态偏移。
+- **技术实现**：
+  - 引入了业界标准的第三方库 `react-native-keyboard-aware-scroll-view` 彻底解决跨端键盘遮挡和不自动上推的问题。
+  - 局部弹窗 (`StudentListScreen`)：在 `Modal` 内使用 `KeyboardAwareScrollView` 并设置 `enableOnAndroid={true}` 和 `extraScrollHeight={20}`，确保全平台弹窗内输入框上推。
+  - 全局表单页 (`LessonPlanEdit`, `LongTermPlanEdit`, `TrainingRecordEdit`, `Notes`, `SkillDetailScreen`)：在外层统一包裹 `KeyboardAwareScrollView`，配置 `contentContainerStyle={{ flexGrow: 1 }}` 保证布局撑满，设置 `enableOnAndroid={true}`，并在 iOS 下结合 `useHeaderHeight()` 设置动态的 `extraScrollHeight={Platform.OS === 'ios' ? headerHeight + 20 : 20}` 补偿导航栏高度，彻底修复原生 `KeyboardAvoidingView` 经常失效的缺陷。
 
 ### 7.5 等级新增技能展示与智能定位
 - **技术实现**：差集计算出相比上一级的新增技能，并使用 `FlatList` 的 `scrollToIndex` 在页面加载时自动滚动到首个未通关等级。

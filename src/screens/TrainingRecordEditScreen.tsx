@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowLeft, Save, CheckSquare, Square, Trash2, Minus, Plus, Calendar } from 'lucide-react-native';
@@ -14,6 +16,7 @@ type RouteProps = RouteProp<TrainingRecordStackParamList, 'TrainingRecordEdit'>;
 export default function TrainingRecordEditScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProps>();
+  const headerHeight = useHeaderHeight();
   
   const { recordId } = route.params || {};
   const { sessionRecords, addSessionRecord, updateSessionRecord, deleteSessionRecord } = useStore();
@@ -132,9 +135,16 @@ export default function TrainingRecordEditScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        
-        {/* Basic Info Card */}
+      <KeyboardAwareScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{ flexGrow: 1 }}
+        enableOnAndroid={true}
+        extraScrollHeight={Platform.OS === 'ios' ? headerHeight + 20 : 20}
+        keyboardShouldPersistTaps="handled"
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          
+          {/* Basic Info Card */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>基本信息</Text>
           
@@ -288,6 +298,7 @@ export default function TrainingRecordEditScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

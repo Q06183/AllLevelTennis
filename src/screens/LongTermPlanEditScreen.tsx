@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Modal, ActivityIndicator, Platform } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowLeft, Save, Trash2, Map as MapIcon, Share2, CheckSquare, Square, X } from 'lucide-react-native';
@@ -17,6 +19,7 @@ type NavigationProp = NativeStackNavigationProp<CoachStackParamList, 'LongTermPl
 export default function LongTermPlanEditScreen() {
   const route = useRoute<RouteProps>();
   const navigation = useNavigation<NavigationProp>();
+  const headerHeight = useHeaderHeight();
   const { studentId, planId } = route.params;
 
   const { students, longTermPlans, addLongTermPlan, updateLongTermPlan, deleteLongTermPlan } = useCoachStore();
@@ -174,8 +177,15 @@ export default function LongTermPlanEditScreen() {
         )}
       </TouchableOpacity>
 
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-        {/* This ViewShot wraps the content we want to export as an image */}
+      <KeyboardAwareScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{ flexGrow: 1 }}
+        enableOnAndroid={true}
+        extraScrollHeight={Platform.OS === 'ios' ? headerHeight + 20 : 20}
+        keyboardShouldPersistTaps="handled"
+      >
+        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+          {/* This ViewShot wraps the content we want to export as an image */}
         <ViewShot 
           ref={viewShotRef} 
           options={{ format: 'jpg', quality: 0.9 }}
@@ -240,6 +250,7 @@ export default function LongTermPlanEditScreen() {
         </ViewShot>
         <View style={{ height: 100 }} />
       </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Skill Selector Modal */}
       <Modal
