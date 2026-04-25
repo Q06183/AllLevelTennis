@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { BookOpen, CheckSquare, Target, Users, Calendar, ChevronDown } from 'lucide-react-native';
+import { BookOpen, CheckSquare, Target, Users, Calendar, ChevronDown, Settings } from 'lucide-react-native';
 import { TouchableOpacity, View, Text, Modal, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
 import { useStore } from '../store';
@@ -17,6 +17,7 @@ import LessonPlanEditScreen from '../screens/LessonPlanEditScreen';
 import StudentDetailScreen from '../screens/StudentDetailScreen';
 import CoachStack from './CoachStack';
 import { RootTabParamList, LevelStackParamList, SkillsStackParamList, TrainingRecordStackParamList, ScheduleStackParamList } from './types';
+import { exportData, importData } from '../utils/dataMigration';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const LevelStack = createNativeStackNavigator<LevelStackParamList>();
@@ -66,6 +67,7 @@ function ScheduleStackNavigator() {
 export default function AppNavigator() {
   const { isCoachMode, toggleCoachMode } = useStore();
   const [menuVisible, setMenuVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
 
   const handleSwitchMode = () => {
     toggleCoachMode();
@@ -94,7 +96,8 @@ export default function AppNavigator() {
           headerStyle: { backgroundColor: '#2C3E50' },
           headerTintColor: '#fff',
           headerRight: () => (
-            <View>
+            <View style={styles.headerRightContainer}>
+              {/* 模式切换下拉菜单 */}
               <TouchableOpacity 
                 onPress={() => setMenuVisible(true)}
                 style={styles.headerRightBtn}
@@ -114,7 +117,7 @@ export default function AppNavigator() {
                 <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
                   <View style={styles.modalOverlay}>
                     <TouchableWithoutFeedback>
-                      <View style={styles.dropdownMenu}>
+                      <View style={[styles.dropdownMenu, styles.modeDropdownMenu]}>
                         <TouchableOpacity 
                           style={[styles.menuItem, !isCoachMode && styles.menuItemActive]}
                           onPress={() => !isCoachMode ? setMenuVisible(false) : handleSwitchMode()}
@@ -127,6 +130,53 @@ export default function AppNavigator() {
                           onPress={() => isCoachMode ? setMenuVisible(false) : handleSwitchMode()}
                         >
                           <Text style={[styles.menuItemText, isCoachMode && styles.menuItemTextActive]}>教练模式</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableWithoutFeedback>
+                  </View>
+                </TouchableWithoutFeedback>
+              </Modal>
+
+              {/* 设置下拉菜单 */}
+              <TouchableOpacity 
+                onPress={() => setSettingsVisible(true)}
+                style={styles.settingsBtn}
+              >
+                <Settings color="#fff" size={20} />
+              </TouchableOpacity>
+
+              <Modal
+                transparent={true}
+                visible={settingsVisible}
+                animationType="fade"
+                onRequestClose={() => setSettingsVisible(false)}
+              >
+                <TouchableWithoutFeedback onPress={() => setSettingsVisible(false)}>
+                  <View style={styles.modalOverlay}>
+                    <TouchableWithoutFeedback>
+                      <View style={[styles.dropdownMenu, styles.settingsDropdownMenu]}>
+                        <TouchableOpacity 
+                          style={styles.menuItem}
+                          onPress={() => {
+                            setSettingsVisible(false);
+                            setTimeout(() => {
+                              exportData();
+                            }, 500);
+                          }}
+                        >
+                          <Text style={styles.menuItemText}>导出备份</Text>
+                        </TouchableOpacity>
+                        <View style={styles.divider} />
+                        <TouchableOpacity 
+                          style={styles.menuItem}
+                          onPress={() => {
+                            setSettingsVisible(false);
+                            setTimeout(() => {
+                              importData();
+                            }, 500);
+                          }}
+                        >
+                          <Text style={styles.menuItemText}>恢复备份</Text>
                         </TouchableOpacity>
                       </View>
                     </TouchableWithoutFeedback>
@@ -175,14 +225,24 @@ export default function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
-  headerRightBtn: {
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginRight: 16,
+  },
+  headerRightBtn: {
+    marginRight: 12,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.15)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
+  },
+  settingsBtn: {
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   headerRightText: {
     color: '#fff',
@@ -197,7 +257,6 @@ const styles = StyleSheet.create({
   dropdownMenu: {
     position: 'absolute',
     top: 90, // safe area approx + header height
-    right: 16,
     backgroundColor: '#fff',
     borderRadius: 8,
     shadowColor: '#000',
@@ -207,6 +266,13 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: 140,
     overflow: 'hidden',
+  },
+  modeDropdownMenu: {
+    right: 56, // 定位到模式切换按钮下方
+  },
+  settingsDropdownMenu: {
+    right: 16, // 定位到齿轮按钮下方
+    width: 120,
   },
   menuItem: {
     paddingVertical: 12,

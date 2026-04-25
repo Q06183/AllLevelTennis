@@ -14,7 +14,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.allleveltennisapp"
+      "bundleIdentifier": "com.allleveltennisapp",
+      "usesIcloudStorage": true
     },
     "android": {
       "package": "com.allleveltennisapp",

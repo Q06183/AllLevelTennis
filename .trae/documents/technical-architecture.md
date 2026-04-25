@@ -31,6 +31,7 @@ graph TD
 - Navigation: React Navigation (Bottom Tabs + Native Stack)
 - Image Viewer: react-native-image-zoom-viewer (用于图片全屏双指缩放预览)
 - Image Export: react-native-view-shot (用于截取10节课规划为长图), expo-sharing (用于系统原生分享)
+- File System: expo-file-system (用于生成数据备份文件), expo-document-picker (用于选择数据备份文件)
 
 ## 3. Route Definitions
 | Route/Screen | Purpose | Icon |
@@ -304,3 +305,12 @@ const skills = [
   - 全局排查并重构了所有的条件渲染逻辑。
   - 对于可能为 `0` 的数字（如 `length` 判断），将 `{count > 0 && <View>}` 重构为 `{count > 0 ? <View> : null}`。
   - 对于可能为空字符串的变量（如 `location`，`lastLessonDate` 等），将 `{str && <View>}` 重构为 `{str ? <View> : null}` 或 `{!!str && <View>}`，从而保证条件表达式的返回值严格为布尔值或 `null`。
+
+### 7.15 一键数据迁移 (One-Click Data Migration)
+- **实现位置**：`src/utils/dataMigration.ts`, `src/navigation/AppNavigator.tsx`
+- **功能描述**：提供将应用中所有数据（Zustand 持久化的 JSON 状态）打包导出及选择文件导入的极简迁移能力。
+- **技术实现**：
+  - **导出**：通过 `AsyncStorage.getItem` 读取 `tennis-app-storage` 和 `all-level-tennis-coach-storage`，封装为标准的 JSON 数据后，使用 `expo-file-system` 写入缓存目录，并调用 `expo-sharing` 唤起系统分享面板。
+  - **导入**：通过 `expo-document-picker` 选择本地的备份文件，读取内容后进行合法性校验（兼容空数据结构），放宽校验条件。对于通过校验的数据，直接调用 `useStore.setState()` 与 `useCoachStore.setState()` 进行热重载覆盖，由于集成了 `persist` 中间件，新的状态不仅会立刻反应在 UI 上，还会自动同步写回 `AsyncStorage`，全程无需强杀或重启 App。
+  - **状态锁与防抖**：针对 iOS 文件选择器单例限制，在 `importData` 中引入了 `isImporting` 状态锁，防止用户连续点击导致的 `Different document picking in progress` 崩溃错误。
+  - **UI 布局与防竞态**：将模式切换与数据迁移入口剥离，导航栏右侧并排显示文字模式按钮与齿轮设置图标。由于 iOS 平台上 `Modal` 关闭动画与呼出原生界面存在冲突，所有调用 `expo-document-picker` 与 `expo-sharing` 的入口均通过 `setTimeout` 延迟 500ms 执行。

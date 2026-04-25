@@ -1,50 +1,57 @@
-# App 迭代升级计划 (Feedback V1)
+# 数据迁移功能实现计划 (Data Migration Feature Plan)
 
-## 1. 需求背景与总结 (Summary)
-根据最新的用户反馈，本次迭代将重点强化**学生端的自我记录能力**与**教练端的教学管理效率**。
-核心目标包括：
-1. **学生端**：引入结构化的训练打卡功能（记录时间、时长、练习内容）。
-2. **教练端**：新增独立的「日程表」视图，按天管理课程安排并关联学员。
-3. **教练端**：新增「10节课长期规划」功能，支持生成学习蓝图，并导出为长图发送给学员。
-4. **体验优化**：根据用户模式（学生/教练）动态分配底部 Tab 导航，提供更专注的角色体验。
+## 1. 目标与背景 (Summary)
+用户需要一个“一键导出所有数据”的能力，以便在更换手机时能够方便地进行数据迁移。
+根据项目的“极简交互”与“直接操作”原则，计划在现有的全局顶部菜单（学生/教练模式切换的下拉菜单）中，直接增加“导出数据”和“导入数据”的快捷入口。
 
 ## 2. 现状分析 (Current State Analysis)
-- **导航结构**：目前为静态的 4 个 Tab（水平、技能、记录、教练），未能完全按角色分离，存在一定的认知干扰。
-- **数据模型**：现有的 `Note`（备忘录）模型过于简单，缺乏针对网球训练的时长、重点技能等结构化字段。教练端的 `LessonPlan` 仅针对单节课，缺乏长期规划 (`LongTermPlan`) 实体。
-- **技术栈**：当前缺乏长图截取与分享的基础设施（未安装 `react-native-view-shot` 等截图库）。
+- **数据存储**：当前应用使用 `Zustand` 结合 `persist` 中间件，将数据存储在 `AsyncStorage` 中。包含两个主要的 Store：`tennis-app-storage` (学生端数据) 和 `all-level-tennis-coach-storage` (教练端数据)。
+- **UI 入口**：在 `src/navigation/AppNavigator.tsx` 中，右上角有一个包含 `Modal` 的下拉菜单，目前仅用于切换“学生模式”和“教练模式”。
+- **依赖库**：项目中已安装 `expo-sharing`，但尚未安装用于文件系统操作和文件选择的库。
 
-## 3. 详细修改方案 (Proposed Changes)
+## 3. 拟定变更 (Proposed Changes)
 
-### 3.1 导航栏动态分发 (Role-Based Navigation)
-- **改动说明**：根据 Zustand 状态中的 `isCoachMode` 动态渲染底部 Tab。
-- **学生模式**：Tab 1: 水平 (Level) | Tab 2: 技能 (Skills) | Tab 3: 打卡记录 (Training Record)
-- **教练模式**：Tab 1: 水平 (Level) | Tab 2: 技能 (Skills) | Tab 3: 日程表 (Schedule) | Tab 4: 学员管理 (Students)
+### 3.1 完善产品与技术文档
+- **修改文件**：`.trae/documents/prd.md`
+  - **内容**：在 Core Features 中新增「数据迁移」功能说明，阐述导出（生成 JSON 备份文件并调用系统分享）和导入（选择 JSON 文件并覆盖现有数据）的流程。
+- **修改文件**：`.trae/documents/technical-architecture.md`
+  - **内容**：补充 `expo-file-system` 和 `expo-document-picker` 依赖说明；新增 `DataMigration` 的架构设计，明确通过 Zustand 的 `setState` 实现数据重水合（Rehydration），避免需要强杀 App 重启。
 
-### 3.2 学员端：结构化训练打卡 (Training Record)
-- **PRD 更新**：原“记录”页面升级为“训练打卡”功能。支持选择日期、填写训练时长（如 1.5 小时）、关联本次练习的重点技能，并可填写自由备注。
-- **Tech Arch 更新**：在数据模型中新增 `SessionRecord` 接口，替代或继承现有的 `Note` 模型，加入 `duration`、`focusSkillIds` 字段。
+### 3.2 安装依赖
+- 执行命令安装所需 Expo 模块：
+  ```bash
+  npx expo install expo-file-system expo-document-picker
+  ```
 
-### 3.3 教练端：独立日程表 Tab (Coach Schedule)
-- **PRD 更新**：为教练新增「日程」Tab。以日历或按天列表的形式展示当天的所有课程安排（即所有未来的 `LessonPlan` 数据或专门的 `Schedule` 记录），并直观显示上课的学员姓名与时间。
-- **Tech Arch 更新**：增加 `ScheduleTab` 路由栈，利用现有的 `LessonPlan` 模型（扩充具体的上课时间字段 `startTime`, `endTime`）来聚合并渲染日程视图。
+### 3.3 创建数据迁移工具类
+- **新增文件**：`src/utils/dataMigration.ts`
+  - **`exportData()`**：
+    1. 从 `AsyncStorage` 读取 `tennis-app-storage` 和 `all-level-tennis-coach-storage`。
+    2. 构造成统一的 JSON 对象，并附加版本号与时间戳。
+    3. 利用 `expo-file-system` 将 JSON 写入应用的缓存目录。
+    4. 利用 `expo-sharing` 调用系统原生分享面板，用户可将其 AirDrop 或保存到“文件”。
+  - **`importData()`**：
+    1. 调用 `expo-document-picker` 让用户选择备份的 JSON 文件。
+    2. 读取文件内容并解析，校验文件格式。
+    3. 弹出二次确认弹窗，警告用户当前数据将被覆盖。
+    4. 确认后，通过 `useStore.setState()` 和 `useCoachStore.setState()` 直接覆盖内存状态（Zustand 的 persist 中间件会自动将其同步到 AsyncStorage）。
+    5. 提示导入成功。
 
-### 3.4 教练端：10节课长期规划与长图导出 (10-Lesson Blueprint & Image Export)
-- **PRD 更新**：在“学员详情页”新增「生成十节课规划」功能。教练可以设定一个长期目标，并依次为第1至第10节课规划重点技能。规划完成后，可一键生成美观的排版并导出为长图分享给学员。
-- **Tech Arch 更新**：
-  - 数据模型：新增 `LongTermPlan` 实体（包含 `studentId`, `title`, `lessons: { lessonNumber, focusSkillIds, description }[]`）。
-  - 第三方库：引入 `react-native-view-shot` 截取视图，结合 `expo-sharing` 调用系统原生分享面板将截图发给学员。
-  - 路由视图：新增 `LongTermPlanScreen` 渲染用于截图的专属长图样式。
+### 3.4 更新 UI 交互
+- **修改文件**：`src/navigation/AppNavigator.tsx`
+  - **内容**：
+    1. 在现有的 `Dropdown Menu` 中，增加一条分隔线（Divider）。
+    2. 添加“导出数据”和“导入数据”两个 `TouchableOpacity` 菜单项。
+    3. 绑定点击事件，点击后关闭下拉菜单并分别调用 `exportData` 和 `importData`。
+    4. **硬约束检查**：确保菜单内的条件渲染严格使用三元运算符或强制布尔转换（例如不使用 `&&` 直接渲染组件）。
 
-## 4. 文档更新任务清单 (Documentation Updates)
-- [ ] 修改 `prd.md`：
-  - 更新 **2.1 User Roles**，明确学生和教练分别看到的 Tab。
-  - 更新 **2.2 Feature Module**，添加打卡、日程表、10节课规划的描述。
-  - 更新 **2.3 Page Details** 映射表。
-  - 补充 **长图导出** 相关的交互流程说明。
-- [ ] 修改 `technical-architecture.md`：
-  - 修正架构图，体现动态 Tab 路由逻辑。
-  - 补充 `SessionRecord` 和 `LongTermPlan` 数据结构定义。
-  - 增加 `react-native-view-shot` 和 `expo-sharing` 依赖说明。
+## 4. 假设与决策 (Assumptions & Decisions)
+- **直接状态覆盖**：使用 `setState()` 直接覆盖 Zustand 状态，避免了在 React Native 中难以实现的热重启（Reload）问题。
+- **极简交互**：不增加额外的“设置”页面，将数据迁移功能直接放在高频的下拉菜单中，符合直接操作理念。
+- **文件格式**：统一采用 `.json` 格式，保证跨端兼容与可读性。
 
-## 5. 验证与后续执行 (Verification)
-此计划仅涉及对 `prd.md` 和 `technical-architecture.md` 的文本与架构设计更新。待用户确认此计划后，将立即执行对上述两个文档的编辑操作，并确保 Markdown 格式正确、Mermaid 图表能正常渲染。
+## 5. 验证步骤 (Verification Steps)
+1. 运行应用，点击右上角菜单，点击“导出数据”，验证是否成功拉起系统分享面板并导出包含正确内容的 JSON 文件。
+2. 在应用中随意添加一些测试数据（如打卡记录、学员）。
+3. 再次点击“导入数据”，选择刚才导出的 JSON 文件，同意覆盖。
+4. 验证应用内的数据是否瞬间恢复至导出时的状态，且无任何渲染崩溃（特别是 RN 的 Text 渲染错误）。

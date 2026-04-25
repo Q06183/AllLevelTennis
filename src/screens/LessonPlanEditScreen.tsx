@@ -122,9 +122,7 @@ export default function LessonPlanEditScreen() {
                 id: newStudentId,
                 name: name,
                 currentLevelId: '1.0',
-                joinDate: new Date().toISOString().split('T')[0],
                 avatar: 'https://images.unsplash.com/photo-1554068865-24cecd4e34f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-                assessments: {}
               });
               // 传递新创建的 studentId 和 studentName，确保在任何情况下都能正确显示名称
               savePlan(newStudentId, name);

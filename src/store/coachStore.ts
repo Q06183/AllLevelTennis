@@ -9,7 +9,7 @@ interface CoachState {
   longTermPlans: LongTermPlan[];
   
   // Student Actions
-  addStudent: (student: Omit<StudentProfile, 'id' | 'assessments'>) => void;
+  addStudent: (student: Omit<StudentProfile, 'id' | 'assessments'> & { id?: string }) => void;
   updateStudent: (id: string, updates: Partial<StudentProfile>) => void;
   deleteStudent: (id: string) => void; // 软删除，放入回收站
   restoreStudent: (id: string) => void; // 从回收站恢复
@@ -42,7 +42,7 @@ export const useCoachStore = create<CoachState>()(
           ...state.students,
           {
             ...studentData,
-            id: Date.now().toString(),
+            id: studentData.id || Date.now().toString(),
             assessments: {},
           }
         ]
