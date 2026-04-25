@@ -41,7 +41,7 @@ export default function StudentDetailScreen() {
   const handleDelete = () => {
     Alert.alert(
       "删除学员",
-      "确定要删除该学员及其所有记录吗？",
+      `确定要删除该学员及其所有记录吗？\n删除后将在回收站保留 30 天。`,
       [
         { text: "取消", style: "cancel" },
         { text: "删除", style: "destructive", onPress: () => {
